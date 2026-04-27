@@ -4,14 +4,11 @@ const app = express();
 const PORT = 3000;
 const db = require("./models/database");
 
-// Læser JSON i request body
 app.use(express.json());
-
-// Serverer frontend filer fra public mappen
 app.use(express.static("public"));
-const casesRouter = require("./routes/cases");
+app.use("/dawa", express.static("node_modules/dawa-autocomplete2/dist/js"));
 
-// Alle requests til /api/cases sendes til casesRouter
+const casesRouter = require("./routes/cases");
 app.use("/api/cases", casesRouter);
 
 app.listen(PORT, async () => {
@@ -19,4 +16,3 @@ app.listen(PORT, async () => {
     await db.connect();
     console.log("Database forbundet");
 });
-
