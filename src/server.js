@@ -19,3 +19,4 @@ app.listen(PORT, async () => {
     await db.connect();
     console.log("Database forbundet");
 });
+
