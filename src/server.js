@@ -9,6 +9,10 @@ app.use(express.json());
 
 // Serverer frontend filer fra public mappen
 app.use(express.static("public"));
+const casesRouter = require("./routes/cases");
+
+// Alle requests til /api/cases sendes til casesRouter
+app.use("/api/cases", casesRouter);
 
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);
