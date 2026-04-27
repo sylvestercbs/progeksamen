@@ -1,0 +1,24 @@
+{
+  "name": "progeksamen",
+  "version": "1.0.0",
+  "description": "Webapplikation til simulering af ejendomsinvesteringer med Node.js, Express og Azure SQL",
+  "main": "script.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sylvestercbs/progeksamen.git"
+  },
+  "author": "Magnus, Frederikke, Sylvester og Smilla",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sylvestercbs/progeksamen/issues"
+  },
+  "homepage": "https://github.com/sylvestercbs/progeksamen#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mssql": "^12.5.0"
+  }
+}
