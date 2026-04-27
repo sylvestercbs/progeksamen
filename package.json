@@ -2,7 +2,7 @@
   "name": "progeksamen",
   "version": "1.0.0",
   "description": "Webapplikation til simulering af ejendomsinvesteringer med Node.js, Express og Azure SQL",
-  "main": "script.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "node --test"
   },
