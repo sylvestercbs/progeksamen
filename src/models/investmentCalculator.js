@@ -8,6 +8,7 @@ class InvestmentCalculator {
 
   // Annuitetsformlen beregner fast månedlig ydelse (ekstern matematisk viden)
   beregnMaanedligYdelse() {
+    if (this.rentesats < 0) throw new Error("Rentesats må ikke være negativ");
     const r = this.rentesats / 12;
     const n = this.loebetid_aar * 12;
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);

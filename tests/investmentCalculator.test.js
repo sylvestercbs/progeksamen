@@ -1,24 +1,24 @@
-const { test } = require("node:test");
-const assert = require("node:assert");
+// Testfiler bruger CommonJS (require/module.exports) fremfor ES-moduler (import/export).
+// Jest opererer som standard i et CommonJS-miljø — ES-moduler kræver ekstra konfiguration
+// der ligger uden for kursets pensum. Applikationskoden benytter ES-moduler (forelæsning 7).
 const InvestmentCalculator = require("../src/models/investmentCalculator");
 
 // Test 1: månedlig ydelse er et positivt tal ved gyldige input
 test("beregnMaanedligYdelse returnerer positivt tal", () => {
   const calc = new InvestmentCalculator(2500000, 2000000, 0.0425, 30);
   const ydelse = calc.beregnMaanedligYdelse();
-  assert.ok(ydelse > 0, "Ydelsen skal være større end 0");
+  expect(ydelse).toBeGreaterThan(0);
 });
 
-// Test 2: negativ rente må ikke give en positiv ydelse
+// Test 2: negativ rente er ugyldigt input, testen verificerer at systemet afviser det
 test("beregnMaanedligYdelse fejler ved negativ rente", () => {
   const calc = new InvestmentCalculator(2500000, 2000000, -0.05, 30);
-  const ydelse = calc.beregnMaanedligYdelse();
-  assert.ok(isNaN(ydelse) || ydelse <= 0, "Negativ rente skal give ugyldigt resultat");
+  expect(() => calc.beregnMaanedligYdelse()).toThrow();
 });
 
 // Test 3: simuler returnerer det rigtige antal år
 test("simuler returnerer korrekt antal rækker", () => {
   const calc = new InvestmentCalculator(2500000, 2000000, 0.0425, 30);
   const resultater = calc.simuler(10, 120000, 30000);
-  assert.strictEqual(resultater.length, 11, "Skal returnere 11 rækker (år 0 til 10)");
+  expect(resultater).toHaveLength(11);
 });

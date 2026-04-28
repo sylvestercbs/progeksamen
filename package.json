@@ -4,7 +4,7 @@
   "description": "Webapplikation til simulering af ejendomsinvesteringer med Node.js, Express og Azure SQL",
   "main": "src/server.js",
   "scripts": {
-    "test": "node --test"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mssql": "^12.5.0"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0"
   }
 }
