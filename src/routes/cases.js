@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/database");
+const InvestmentCalculator = require("../models/investmentCalculator");
 
 // Henter alle cases fra databasen og returnerer dem som JSON
 router.get("/", async (req, res) => {
@@ -62,5 +63,19 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Opretter en InvestmentCalculator med lånedata og returnerer simulerede resultater pr. år
+    router.post("/:id/simulate", async (req, res) => {
+        try {
+         const { pris, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter, antalAar } = req.body;
+    
+        const calculator = new InvestmentCalculator(pris, laanebeloeb, rentesats, loebetid_aar);
+        const resultater = calculator.simuler(antalAar, lejeindtaegt, udgifter);
+    
+        res.status(201).json(resultater);
+     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+    });
 
 module.exports = router;
