@@ -11,6 +11,9 @@ app.use("/dawa", express.static("node_modules/dawa-autocomplete2/dist/js"));
 const casesRouter = require("./routes/cases");
 app.use("/api/cases", casesRouter);
 
+const bbrRouter = require('./routes/bbr');
+app.use('/api/bbr', bbrRouter);
+
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);
     await db.connect();
