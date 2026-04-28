@@ -2,23 +2,35 @@
 <html>
 <meta charset="utf-8">
 <head>
-  <title>BBR opslag</title>
+  <title>Ejendomsopslag</title>
   <link href="style.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
+
+  <h1>Ejendomsopslag</h1>
 
   <label for="adresse">Adresse:</label>
   <div class="autocomplete-container">
     <input type="text" id="adresse">
   </div>
+
   <p>Valgt adresse: <span id="valgtadresse"></span></p>
 
   <button id="bbr-knap">Hent ejendomsdata</button>
   <p id="bbr-resultat"></p>
 
+  <button id="kort-knap">Vis kort</button>
+
+  <h3>Kort</h3>
+  <div id="map"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
   <script src="/dawa/dawa-autocomplete2.min.js"></script>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="/script.js"></script>
 
 </body>

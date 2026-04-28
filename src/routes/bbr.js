@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
 
     const response = await fetch(url.toString());
     const text = await response.text();
-    console.log("BBR svar:", text);
 
     const data = JSON.parse(text);
     const enhed = data[0] || {};

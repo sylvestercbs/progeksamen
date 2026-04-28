@@ -14,6 +14,10 @@ app.use("/api/cases", casesRouter);
 const bbrRouter = require('./routes/bbr');
 app.use('/api/bbr', bbrRouter);
 
+// NYT: kort API
+const kortRouter = require("./routes/kort");
+app.use("/api/kort", kortRouter);
+
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);
     await db.connect();
