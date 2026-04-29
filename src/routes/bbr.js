@@ -1,29 +1,45 @@
 const express = require('express');
 const router = express.Router();
 
+const EJENDOMSTYPER = {
+  110: 'Stuehus til landbrugsejendom',
+  120: 'Fritliggende enfamiliehus',
+  121: 'Sammenbygget enfamiliehus',
+  130: 'Rækkehus',
+  140: 'Etageboligbebyggelse',
+  190: 'Anden helårsbeboelse',
+};
+
 router.get('/', async (req, res) => {
   try {
     const { adresseId } = req.query;
-    if (!adresseId) {
-      return res.status(400).json({ error: 'Mangler adresseId' });
+    if (!adresseId) return res.status(400).json({ error: 'Mangler adresseId' });
+
+    const base = 'https://services.datafordeler.dk/BBR/BBRPublic/1/REST';
+    const auth = `username=${process.env.BBR_USERNAME}&password=${process.env.BBR_PASSWORD}`;
+
+    const enhedRes = await fetch(`${base}/enhed?AdresseIdentificerer=${adresseId}&format=JSON&${auth}`);
+    const enhedData = await enhedRes.json();
+    const enhed = enhedData[0] || {};
+
+    let byggeaar = null;
+    let ejendomstype = null;
+
+    const bygningId = enhed.bygning?.[0];
+    if (bygningId) {
+      const bygningRes = await fetch(`${base}/bygning?id=${bygningId}&format=JSON&${auth}`);
+      const bygningData = await bygningRes.json();
+      const bygning = bygningData[0] || {};
+      byggeaar = bygning.byg026Opførelsesår || null;
+      ejendomstype = EJENDOMSTYPER[bygning.byg021BygningensAnvendelse] || null;
     }
 
-    const url = new URL('https://services.datafordeler.dk/BBR/BBRPublic/1/REST/enhed');
-    url.searchParams.set('username', process.env.BBR_USERNAME);
-    url.searchParams.set('password', process.env.BBR_PASSWORD);
-    url.searchParams.set('AdresseIdentificerer', adresseId);
-    url.searchParams.set('format', 'JSON');
-
-    const response = await fetch(url.toString());
-    const text = await response.text();
-
-    const data = JSON.parse(text);
-    const enhed = data[0] || {};
-    const resultat = {
+    res.json({
       boligareal:     enhed.enh026EnhedensSamledeAreal || null,
       antalVaerelser: enhed['enh031AntalVærelser']      || null,
-    };
-    res.json(resultat);
+      byggeaar,
+      ejendomstype,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

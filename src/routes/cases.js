@@ -29,18 +29,35 @@ router.get("/:id", async (req, res) => {
 // req.body indeholder data sendt fra frontend som JSON
 router.post("/", async (req, res) => {
   try {
-    const { profil_id, navn, ejendomspris } = req.body;
-    const result = await db.query(
-      // OUTPUT INSERTED returnerer den nyoprettede række inkl. auto-genereret id (ekstern T-SQL viden)
-      "INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, ejendomspris) OUTPUT INSERTED.case_id VALUES (@profil_id, @navn, @ejendomspris)",
+    const { ejendom_id, navn, beskrivelse } = req.body;
+
+    if (!navn) return res.status(400).json({ error: 'Navn er påkrævet' });
+
+    // Opret Ejendomsprofil og få profil_id tilbage
+    const profilResult = await db.query(
+      `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
+       OUTPUT INSERTED.profil_id
+       VALUES (@ejendom_id, @navn, @beskrivelse)`,
       [
-        { name: "profil_id",    value: profil_id },
-        { name: "navn",         value: navn },
-        { name: "ejendomspris", value: ejendomspris }
+        { name: 'ejendom_id',  value: ejendom_id },
+        { name: 'navn',        value: navn },
+        { name: 'beskrivelse', value: beskrivelse },
       ]
     );
-    // 201 Created signalerer at en ny ressource er oprettet
-    res.status(201).json(result.recordset[0]);
+    const profil_id = profilResult.recordset[0].profil_id;
+
+    // Opret Investeringscase med reference til profilen
+    const caseResult = await db.query(
+      `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse)
+       OUTPUT INSERTED.case_id
+       VALUES (@profil_id, @navn, @beskrivelse)`,
+      [
+        { name: 'profil_id',   value: profil_id },
+        { name: 'navn',        value: navn },
+        { name: 'beskrivelse', value: beskrivelse },
+      ]
+    );
+    res.status(201).json(caseResult.recordset[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -72,7 +89,7 @@ router.put("/:id", async (req, res) => {
         const calculator = new InvestmentCalculator(pris, laanebeloeb, rentesats, loebetid_aar);
         const resultater = calculator.simuler(antalAar, lejeindtaegt, udgifter);
     
-        res.status(201).json(resultater);
+        res.status(200).json(resultater);
      } catch (err) {
         res.status(500).json({ error: err.message });
     }

@@ -22,8 +22,8 @@ router.get("/", async (req, res) => {
       srs = "EPSG:25832";
       size = 200; // meter
     } else {
-      service = "wms/orto_foraar";
-      layer = "sjaelland_2011_10cm";
+      service = "orto_foraar_DAF";
+      layer = "orto_foraar";
       srs = "EPSG:4326";
       size = 0.002; // grader
     }

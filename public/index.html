@@ -19,7 +19,27 @@
   <p>Valgt adresse: <span id="valgtadresse"></span></p>
 
   <button id="bbr-knap">Hent ejendomsdata</button>
-  <p id="bbr-resultat"></p>
+
+  <div id="ejendomsprofil" style="display:none">
+    <h2>Ejendomsprofil</h2>
+    <p><strong>Adresse:</strong> <span id="profil-adresse"></span></p>
+    <p><strong>Ejendomstype:</strong> <span id="profil-ejendomstype"></span></p>
+    <p><strong>Byggeår:</strong> <span id="profil-byggeaar"></span></p>
+    <p><strong>Boligareal:</strong> <span id="profil-boligareal"></span> m²</p>
+    <p><strong>Antal værelser:</strong> <span id="profil-vaerelser"></span></p>
+  </div>
+
+  <div id="case-formular" style="display:none">
+    <h3>Opret investeringscase</h3>
+    <label>Navn:<br>
+      <input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
+    </label><br>
+    <label>Beskrivelse:<br>
+      <textarea id="case-beskrivelse" placeholder="Beskriv investeringen..."></textarea>
+    </label><br>
+    <button id="opret-case-knap">Opret case</button>
+    <p id="case-besked"></p>
+  </div>
 
   <button id="kort-knap">Vis kort</button>
 

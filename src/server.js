@@ -14,6 +14,9 @@ app.use("/api/cases", casesRouter);
 const bbrRouter = require('./routes/bbr');
 app.use('/api/bbr', bbrRouter);
 
+const ejendommeRouter = require("./routes/ejendomme");
+app.use("/api/ejendomme", ejendommeRouter);
+
 // NYT: kort API
 const kortRouter = require("./routes/kort");
 app.use("/api/kort", kortRouter);
