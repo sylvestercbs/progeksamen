@@ -20,22 +20,27 @@ router.get('/', async (req, res) => {
 
     const enhedRes = await fetch(`${base}/enhed?AdresseIdentificerer=${adresseId}&format=JSON&${auth}`);
     const enhedData = await enhedRes.json();
-    const enhed = enhedData[0] || {};
+    // ÆNDRING 1: finder enheden med areal-data i stedet for bare [0]
+    const enhed = enhedData.find(e => e.enh026EnhedensSamledeAreal) || enhedData[0] || {};
 
     let byggeaar = null;
     let ejendomstype = null;
+    // ÆNDRING 2: flyttet ud af if-blokken så den er tilgængelig nedenfor
+    let bygning = {};
 
-    const bygningId = enhed.bygning?.[0];
+    // ÆNDRING 3: bygning er en streng-GUID, ikke array — fjernet ?.[0]
+    const bygningId = enhed.bygning || null;
     if (bygningId) {
       const bygningRes = await fetch(`${base}/bygning?id=${bygningId}&format=JSON&${auth}`);
       const bygningData = await bygningRes.json();
-      const bygning = bygningData[0] || {};
+      bygning = bygningData[0] || {};
       byggeaar = bygning.byg026Opførelsesår || null;
       ejendomstype = EJENDOMSTYPER[bygning.byg021BygningensAnvendelse] || null;
     }
 
     res.json({
-      boligareal:     enhed.enh026EnhedensSamledeAreal || null,
+      // ÆNDRING 4: falder tilbage på bygningens areal hvis enheden ikke har det
+      boligareal:     enhed.enh026EnhedensSamledeAreal || bygning.byg039BygningensSamledeBoligAreal || null,
       antalVaerelser: enhed['enh031AntalVærelser']      || null,
       byggeaar,
       ejendomstype,
