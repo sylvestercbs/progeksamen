@@ -1,5 +1,6 @@
 "use strict";
 
+// 1. Tomme variabler
 let valgtAdresseId = null;
 let valgtLon = null;
 let valgtLat = null;
@@ -11,13 +12,17 @@ let valgtHusnummer = null;
 let valgtPostnummer = null;
 let valgtBynavn = null;
 
+// 2. Opretter et kort
 let map = L.map("map").setView([55.6761, 12.5683], 13);
 let satelliteLayer = null;
 let matrikelLayer = null;
 let marker = null;
 
+// 3. Gør adressefeltet intelligent med DAWA autocomplete
 dawaAutocomplete.dawaAutocomplete(document.getElementById("adresse"), {
   select: async function(selected) {
+
+    // 4. Når brugeren vælger adresse
     document.getElementById("valgtadresse").innerHTML = selected.tekst;
 
     valgtAdresseId  = selected.data.id;
@@ -33,13 +38,10 @@ dawaAutocomplete.dawaAutocomplete(document.getElementById("adresse"), {
 
     valgtX25832 = adresse.geometry.coordinates[0];
     valgtY25832 = adresse.geometry.coordinates[1];
-
-    console.log("Valgt adresse:", selected.tekst);
-    console.log("GPS koordinater:", valgtLon, valgtLat);
-    console.log("25832 koordinater:", valgtX25832, valgtY25832);
   }
 });
 
+// 5. Når brugeren klikker "Hent ejendomsdata"
 document.getElementById("bbr-knap").addEventListener("click", async function() {
   if (!valgtAdresseId) {
     alert("Vælg først en adresse");
@@ -77,6 +79,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("case-formular").style.display = "block";
 });
 
+// 6. Når brugeren klikker "Opret case"
 document.getElementById("opret-case-knap").addEventListener("click", async function() {
   const navn = document.getElementById("case-navn").value.trim();
   if (!navn) {
@@ -97,6 +100,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   document.getElementById("case-besked").textContent = "Case oprettet med ID: " + data.case_id;
 });
 
+// 7. Når brugeren klikker "Vis kort"
 document.getElementById("kort-knap").addEventListener("click", function() {
   if (!valgtLon || !valgtLat) {
     alert("Vælg først en adresse");
