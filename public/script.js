@@ -136,3 +136,97 @@ document.getElementById("kort-knap").addEventListener("click", function() {
     .bindPopup("Valgt ejendom")
     .openPopup();
 });
+
+// Holder Chart.js-instansen så den kan ødelægges og genskabes ved ny simulering
+let simuleringsGraf = null;
+
+// Viser simuleringsformularen når en case er oprettet
+// valgtEjendomId sættes i BBR-eventet og valgtCaseId sættes herunder
+document.getElementById("opret-case-knap").addEventListener("click", async function () {
+  // Bruger den allerede eksisterende case-oprettelse ovenfor i script.js
+  // Formularen vises kun hvis oprettelsen lykkedes (valgtEjendomId er sat)
+  if (valgtEjendomId) {
+    document.getElementById("simulering-formular").style.display = "block";
+  }
+});
+
+document.getElementById("simuler-knap").addEventListener("click", async function () {
+  const pris         = parseFloat(document.getElementById("sim-laanebeloeb").value);
+  const laanebeloeb  = parseFloat(document.getElementById("sim-laanebeloeb").value);
+  const rentesats    = parseFloat(document.getElementById("sim-rentesats").value);
+  const loebetid_aar = parseInt(document.getElementById("sim-loebetid").value);
+  const lejeindtaegt = parseFloat(document.getElementById("sim-lejeindtaegt").value);
+  const udgifter     = parseFloat(document.getElementById("sim-udgifter").value);
+  const antalAar     = parseInt(document.getElementById("sim-antal-aar").value);
+
+  // Henter case-id fra den sidst oprettede case (sat via case-besked-elementet)
+  const caseBesked = document.getElementById("case-besked").textContent;
+  const caseId = caseBesked.match(/\d+/)?.[0];
+  if (!caseId) {
+    alert("Opret først en case");
+    return;
+  }
+
+  // POST til /api/cases/:id/simulate — backend returnerer array af {aar, ejendomsvaerdi, cashflow}
+  const res = await fetch(`/api/cases/${caseId}/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pris, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter, antalAar })
+  });
+  const resultater = await res.json();
+
+  visSimulering(resultater);
+});
+
+function visSimulering(resultater) {
+  document.getElementById("simulering-resultat").style.display = "block";
+
+  const aar        = resultater.map(r => `År ${r.aar}`);
+  const vaerdier   = resultater.map(r => Math.round(r.ejendomsvaerdi));
+  const cashflows  = resultater.map(r => Math.round(r.cashflow));
+
+  // Ødelægger tidligere graf så Canvas ikke fejler ved genkørsel
+  if (simuleringsGraf) simuleringsGraf.destroy();
+
+  const ctx = document.getElementById("simulering-graf").getContext("2d");
+
+  // Chart.js opretter en linjegraf med to datasæt — ejendomsværdi og cashflow
+  // Valg: linjegraf frem for søjlediagram fordi tidsudvikling over 30 år er lettere at aflæse
+  simuleringsGraf = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: aar,
+      datasets: [
+        {
+          label: "Ejendomsværdi (kr.)",
+          data: vaerdier,
+          borderColor: "steelblue",
+          tension: 0.1,
+          yAxisID: "y"
+        },
+        {
+          label: "Årligt cashflow (kr.)",
+          data: cashflows,
+          borderColor: "green",
+          tension: 0.1,
+          yAxisID: "y1"
+        }
+      ]
+    },
+    options: {
+      // To y-akser fordi ejendomsværdi (millioner) og cashflow (tusinder) har meget forskellig skala
+      scales: {
+        y:  { position: "left",  title: { display: true, text: "Ejendomsværdi (kr.)" } },
+        y1: { position: "right", title: { display: true, text: "Cashflow (kr.)" }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+
+  // Tabel som fallback — tilgængelighed og eksamen-krav om tabel/diagram/graf
+  let html = "<table border='1'><tr><th>År</th><th>Ejendomsværdi</th><th>Cashflow</th></tr>";
+  resultater.forEach(r => {
+    html += `<tr><td>${r.aar}</td><td>${Math.round(r.ejendomsvaerdi).toLocaleString("da-DK")} kr.</td><td>${Math.round(r.cashflow).toLocaleString("da-DK")} kr.</td></tr>`;
+  });
+  html += "</table>";
+  document.getElementById("simulering-tabel").innerHTML = html;
+}

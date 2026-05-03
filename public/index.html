@@ -2,56 +2,60 @@
 <html>
 <meta charset="utf-8">
 <head>
-  <title>Ejendomsopslag</title>
-  <link href="style.css" rel="stylesheet">
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<title>Ejendomsopslag</title>
+<link href="style.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
-
-  <h1>Ejendomsopslag</h1>
-
-  <label for="adresse">Adresse:</label>
-  <div class="autocomplete-container">
-    <input type="text" id="adresse">
-  </div>
-
-  <p>Valgt adresse: <span id="valgtadresse"></span></p>
-
-  <button id="bbr-knap">Hent ejendomsdata</button>
-
-  <div id="ejendomsprofil" style="display:none">
-    <h2>Ejendomsprofil</h2>
-    <p><strong>Adresse:</strong> <span id="profil-adresse"></span></p>
-    <p><strong>Ejendomstype:</strong> <span id="profil-ejendomstype"></span></p>
-    <p><strong>Byggeår:</strong> <span id="profil-byggeaar"></span></p>
-    <p><strong>Boligareal:</strong> <span id="profil-boligareal"></span> m²</p>
-    <p><strong>Antal værelser:</strong> <span id="profil-vaerelser"></span></p>
-  </div>
-
-  <div id="case-formular" style="display:none">
-    <h3>Opret investeringscase</h3>
-    <label>Navn:<br>
-      <input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
-    </label><br>
-    <label>Beskrivelse:<br>
-      <textarea id="case-beskrivelse" placeholder="Beskriv investeringen..."></textarea>
-    </label><br>
-    <button id="opret-case-knap">Opret case</button>
-    <p id="case-besked"></p>
-  </div>
-
-  <button id="kort-knap">Vis kort</button>
-
-  <h3>Kort</h3>
-  <div id="map"></div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-  <script src="/dawa/dawa-autocomplete2.min.js"></script>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="/script.js"></script>
-
+<h1>Ejendomsopslag</h1>
+<label for="adresse">Adresse:</label>
+<div class="autocomplete-container">
+<input type="text" id="adresse">
+</div>
+<p>Valgt adresse: <span id="valgtadresse"></span></p>
+<button id="bbr-knap">Hent ejendomsdata</button>
+<div id="ejendomsprofil" style="display:none">
+<h2>Ejendomsprofil</h2>
+<p><strong>Adresse:</strong> <span id="profil-adresse"></span></p>
+<p><strong>Ejendomstype:</strong> <span id="profil-ejendomstype"></span></p>
+<p><strong>Byggeår:</strong> <span id="profil-byggeaar"></span></p>
+<p><strong>Boligareal:</strong> <span id="profil-boligareal"></span> m²</p>
+<p><strong>Antal værelser:</strong> <span id="profil-vaerelser"></span></p>
+</div>
+<div id="case-formular" style="display:none">
+<h3>Opret investeringscase</h3>
+<label>Navn:<br>
+<input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
+</label><br>
+<label>Beskrivelse:<br>
+<textarea id="case-beskrivelse" placeholder="Beskriv investeringen..."></textarea>
+</label><br>
+<button id="opret-case-knap">Opret case</button>
+<p id="case-besked"></p>
+</div>
+<div id="simulering-formular" style="display:none">
+<h3>Simuler investering</h3>
+<label>Lånebeløb (kr.): <input type="number" id="sim-laanebeloeb" value="2000000"></label><br>
+<label>Rentesats (fx 0.0425): <input type="number" id="sim-rentesats" step="0.001" value="0.0425"></label><br>
+<label>Løbetid (år): <input type="number" id="sim-loebetid" value="30"></label><br>
+<label>Årlig lejeindtægt (kr.): <input type="number" id="sim-lejeindtaegt" value="120000"></label><br>
+<label>Årlige udgifter (kr.): <input type="number" id="sim-udgifter" value="30000"></label><br>
+<label>Simuler antal år: <input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
+<button id="simuler-knap">Kør simulering</button>
+</div>
+<div id="simulering-resultat" style="display:none">
+<h3>Simuleringsresultat</h3>
+<canvas id="simulering-graf"></canvas>
+<div id="simulering-tabel"></div>
+</div>
+<button id="kort-knap">Vis kort</button>
+<h3>Kort</h3>
+<div id="map"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
+<script src="/dawa/dawa-autocomplete2.min.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/script.js"></script>
 </body>
 </html>
