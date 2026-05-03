@@ -10,7 +10,7 @@ async function loadEjendomme() {
     return;
   }
 
-  let html = `<table border="1" cellpadding="6">
+  let html = `<table class="ejendoms-tabel">
     <tr><th>Adresse</th><th>Oprettet</th><th>Sidst hentet</th><th>Cases</th><th>Handlinger</th></tr>`;
   ejendomme.forEach(e => {
     const adresse  = `${e.vejnavn} ${e.husnummer}, ${e.postnummer} ${e.bynavn}`;
@@ -21,10 +21,10 @@ async function loadEjendomme() {
       <td>${oprettet}</td>
       <td>${hentet}</td>
       <td>${e.antal_cases}</td>
-      <td>
-        <button onclick="visCases(${e.ejendom_id}, '${adresse}')">Se cases</button>
-        <button onclick="redigerEjendom(${e.ejendom_id})">Rediger</button>
-        <button onclick="sletEjendom(${e.ejendom_id})">Slet</button>
+      <td class="knap-celle">
+        <button class="tabel-knap" onclick="visCases(${e.ejendom_id}, '${adresse}')">Se cases</button>
+        <button class="tabel-knap" onclick="redigerEjendom(${e.ejendom_id})">Rediger</button>
+        <button class="tabel-knap slet" onclick="sletEjendom(${e.ejendom_id})">Slet</button>
       </td>
     </tr>`;
   });
@@ -93,7 +93,7 @@ async function visCases(ejendomId, adresse) {
   if (!cases.length) {
     document.getElementById("cases-liste").innerHTML = "<p>Ingen cases oprettet endnu.</p>";
   } else {
-    let html = `<table border="1" cellpadding="6">
+    let html = `<table class="ejendoms-tabel">
       <tr><th>Navn</th><th>Ejendomspris</th><th>Oprettet</th><th></th></tr>`;
     cases.forEach(c => {
       const pris = c.ejendomspris ? Number(c.ejendomspris).toLocaleString("da-DK") + " kr." : "-";
@@ -102,7 +102,7 @@ async function visCases(ejendomId, adresse) {
         <td>${c.navn}</td>
         <td>${pris}</td>
         <td>${oprettet}</td>
-        <td><button onclick="klargørSimulering(${c.case_id}, '${c.navn}')">Simuler</button></td>
+        <td><button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${c.navn}')">Simuler</button></td>
       </tr>`;
     });
     html += "</table>";
@@ -169,7 +169,7 @@ document.getElementById("sim-knap").addEventListener("click", async function () 
     }
   });
 
-  let html = "<table border='1'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
+  let html = "<table class='ejendoms-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
   resultater.forEach(r => {
     html += `<tr>
       <td>${r.aar}</td>

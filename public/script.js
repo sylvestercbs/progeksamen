@@ -66,6 +66,31 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("profil-boligareal").textContent = data.boligareal || "Ikke tilgængeligt";
   document.getElementById("profil-vaerelser").textContent = data.antalVaerelser || "Ikke tilgængeligt";
 
+  // Nulstil formular og arrays fra forrige søgning
+  document.getElementById("case-navn").value = "";
+  document.getElementById("case-beskrivelse").value = "";
+  document.getElementById("case-ejendomspris").value = "";
+  document.getElementById("case-koebs-omkostninger").value = "";
+  document.getElementById("laan-beloeb").value = "";
+  document.getElementById("laan-rente").value = "";
+  document.getElementById("laan-loebetid").value = "";
+  document.getElementById("laan-afdragsfri").value = "0";
+  document.getElementById("renovering-liste").innerHTML = "";
+  document.getElementById("drift-liste").innerHTML = "";
+  document.getElementById("udlejning-liste").innerHTML = "";
+  document.getElementById("case-besked").textContent = "";
+  document.getElementById("simulering-formular").style.display = "none";
+  document.getElementById("simulering-resultat").style.display = "none";
+  renoveringer.length = 0;
+  driftsposter.length = 0;
+  udlejningsposter.length = 0;
+
+  // Sæt første tab aktiv
+  document.querySelectorAll(".tab-knap").forEach(k => k.classList.remove("aktiv"));
+  document.querySelectorAll(".tab-indhold").forEach(t => t.classList.remove("aktiv"));
+  document.querySelector(".tab-knap[data-tab='tab-koeb']").classList.add("aktiv");
+  document.getElementById("tab-koeb").classList.add("aktiv");
+
   document.getElementById("ejendomsprofil").style.display = "block";
 
   const ejendomRes = await fetch('/api/ejendomme', {
@@ -191,8 +216,6 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
 });
 
 function visKort() {
-  map.setView([valgtLat, valgtLon], 17);
-
   if (satelliteLayer) map.removeLayer(satelliteLayer);
   if (matrikelLayer) map.removeLayer(matrikelLayer);
   if (marker) map.removeLayer(marker);
@@ -201,6 +224,9 @@ function visKort() {
     [valgtLat - 0.002, valgtLon - 0.002],
     [valgtLat + 0.002, valgtLon + 0.002]
   ];
+
+  const zoom = map.getBoundsZoom(bounds) + 1;
+  map.setView([valgtLat, valgtLon], zoom);
 
   satelliteLayer = L.imageOverlay(
     `/api/kort?type=satellit&x=${valgtLon}&y=${valgtLat}`,

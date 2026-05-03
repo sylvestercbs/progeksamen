@@ -1,16 +1,150 @@
-label {
-  color: red;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+nav a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+nav a:hover {
+  color: #2d6a4f;
+}
+
+/* Hero */
+.hero {
+  background: #2d6a4f;
+  color: #fff;
+  padding: 60px 24px 80px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+}
+
+.hero p {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 32px;
+}
+
+/* Search card */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+  color: #222;
+}
+
+.card label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.primær-knap {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #2d6a4f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.primær-knap:hover {
+  background: #235c42;
+}
+
+.eller {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.eller::before,
+.eller::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+.sekundær-knap {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sekundær-knap:hover {
+  background: #e0e0e0;
+}
+
+/* Main content area below hero */
+.indhold {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+/* Autocomplete */
 .autocomplete-container {
   position: relative;
   width: 100%;
-  max-width: 30em;
 }
 
 .autocomplete-container input {
   width: 100%;
-  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
 }
 
 .dawa-autocomplete-suggestions {
@@ -25,7 +159,6 @@ label {
   right: 0;
   z-index: 9999;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 .dawa-autocomplete-suggestions .dawa-autocomplete-suggestion {
@@ -42,12 +175,148 @@ label {
   background: #f0f0f0;
 }
 
+/* Map */
 #map {
   width: 600px;
   height: 600px;
   border: 1px solid #ccc;
 }
 
+/* Side hero (ejendomme-siden) */
+.side-hero {
+  background: #2d6a4f;
+  color: #fff;
+  padding: 40px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.side-hero h1 {
+  font-size: 1.8rem;
+  flex: 1;
+}
+
+.side-hero p {
+  flex-basis: 100%;
+  opacity: 0.85;
+  font-size: 0.95rem;
+  margin-top: -16px;
+}
+
+/* Nav aktiv link */
+.aktiv-nav {
+  color: #2d6a4f !important;
+  font-weight: 700;
+}
+
+/* Lys sekundær knap (til mørk baggrund) */
+.sekundær-knap--lys {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.sekundær-knap--lys:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* Smal knap */
+.primær-knap--smal,
+.sekundær-knap--smal {
+  display: inline-block;
+  width: auto;
+  padding: 8px 16px;
+}
+
+/* Ejendomme tabel */
+.ejendoms-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 0.95rem;
+}
+
+.ejendoms-tabel th {
+  background: #2d6a4f;
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.ejendoms-tabel td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.ejendoms-tabel tr:hover td {
+  background: #f9f9f9;
+}
+
+.ejendoms-tabel .knap-celle {
+  display: flex;
+  gap: 6px;
+}
+
+.tabel-knap {
+  padding: 5px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.tabel-knap:hover { background: #e8e8e8; }
+.tabel-knap.slet { border-color: #e07070; color: #c0392b; }
+.tabel-knap.slet:hover { background: #fde8e8; }
+
+/* Rediger kort */
+.rediger-kort {
+  margin-top: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.form-grid input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.knap-række {
+  display: flex;
+  gap: 12px;
+}
+
+/* Cases og simulering sektioner */
+#cases-sektion {
+  margin-top: 32px;
+}
+
+#cases-sektion h3 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
+/* Tabs */
 .tab-knapper {
   display: flex;
   gap: 8px;
@@ -59,12 +328,13 @@ label {
   cursor: pointer;
   background: #eee;
   border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .tab-knap.aktiv {
-  background: steelblue;
+  background: #2d6a4f;
   color: white;
-  border-color: steelblue;
+  border-color: #2d6a4f;
 }
 
 .tab-indhold {
