@@ -3,7 +3,7 @@ POST http://localhost:3000/api/laan
 Content-Type: application/json
 
 {
-  "case_id": 1,
+  "case_id": 12,
   "laantype": "Realkredit",
   "laanebeloeb": 2000000,
   "rentesats": 0.0425,
