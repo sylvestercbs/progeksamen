@@ -21,6 +21,15 @@ app.use("/api/ejendomme", ejendommeRouter);
 const kortRouter = require("./routes/kort");
 app.use("/api/kort", kortRouter);
 
+const laanRouter = require("./routes/laan");
+app.use("/api/laan", laanRouter);
+
+const driftsomkostningerRouter = require("./routes/driftsomkostninger");
+app.use("/api/driftsomkostninger", driftsomkostningerRouter);
+
+const udlejningRouter = require("./routes/udlejning");
+app.use("/api/udlejning", udlejningRouter);
+
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);
     await db.connect();

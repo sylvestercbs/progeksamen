@@ -29,15 +29,15 @@ router.get("/:id", async (req, res) => {
 // req.body indeholder data sendt fra frontend som JSON
 router.post("/", async (req, res) => {
   try {
-    const { ejendom_id, navn, beskrivelse } = req.body;
+    const { ejendom_id, navn, beskrivelse, ejendomspris, koebs_omkostninger } = req.body;
 
     if (!navn) return res.status(400).json({ error: 'Navn er påkrævet' });
 
     // Opret Ejendomsprofil og få profil_id tilbage
     const profilResult = await db.query(
-      `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
-       OUTPUT INSERTED.profil_id
-       VALUES (@ejendom_id, @navn, @beskrivelse)`,
+      `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)
+      OUTPUT INSERTED.case_id
+      VALUES (@profil_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
       [
         { name: 'ejendom_id',  value: ejendom_id },
         { name: 'navn',        value: navn },
@@ -72,7 +72,9 @@ router.put("/:id", async (req, res) => {
       [
         { name: "navn",         value: navn },
         { name: "ejendomspris", value: ejendomspris },
-        { name: "id",           value: req.params.id }
+        { name: "id",           value: req.params.id },
+        { name: "ejendomspris",       value: ejendomspris || 0 },
+        { name: "koebs_omkostninger", value: koebs_omkostninger || 0 },
       ]
     );
     res.json({ message: "Case opdateret" });

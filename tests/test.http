@@ -1,0 +1,43 @@
+### Opret lån
+POST http://localhost:3000/api/laan
+Content-Type: application/json
+
+{
+  "case_id": 1,
+  "laantype": "Realkredit",
+  "laanebeloeb": 2000000,
+  "rentesats": 0.0425,
+  "loebetid_aar": 30,
+  "afdragsfri_periode_aar": 0
+}
+
+### Opret driftsomkostning
+POST http://localhost:3000/api/driftsomkostninger
+Content-Type: application/json
+
+{
+  "case_id": 1,
+  "beskrivelse": "Ejendomsskat",
+  "beloeb": 1500,
+  "er_maanedlig": 0
+}
+
+### Opret udlejning
+POST http://localhost:3000/api/udlejning
+Content-Type: application/json
+
+{
+  "case_id": 1,
+  "posttype": "Lejeindtaegt",
+  "beloeb": 10000,
+  "er_maanedlig": 1
+}
+
+### Hent lån for case 1
+GET http://localhost:3000/api/laan/1
+
+### Hent driftsomkostninger for case 1
+GET http://localhost:3000/api/driftsomkostninger/1
+
+### Hent udlejning for case 1
+GET http://localhost:3000/api/udlejning/1
