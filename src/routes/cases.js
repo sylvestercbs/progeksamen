@@ -32,20 +32,35 @@ router.post("/", async (req, res) => {
     const { ejendom_id, navn, beskrivelse, ejendomspris, koebs_omkostninger } = req.body;
 
     if (!navn) return res.status(400).json({ error: 'Navn er påkrævet' });
+    if (!ejendom_id) return res.status(400).json({ error: 'ejendom_id er påkrævet' });
 
-    const result = await db.query(
-      `INSERT INTO EjendomInvestApp.Investeringscase (ejendom_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)
-       OUTPUT INSERTED.case_id
-       VALUES (@ejendom_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
+    // Opret Ejendomsprofil først — Investeringscase kræver en profil_id (FK til Ejendomsprofil)
+    const profilResult = await db.query(
+      `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
+       OUTPUT INSERTED.profil_id
+       VALUES (@ejendom_id, @navn, @beskrivelse)`,
       [
-        { name: 'ejendom_id',         value: ejendom_id },
+        { name: 'ejendom_id',  value: ejendom_id },
+        { name: 'navn',        value: navn },
+        { name: 'beskrivelse', value: beskrivelse },
+      ]
+    );
+    const profil_id = profilResult.recordset[0].profil_id;
+
+    // Opret Investeringscase med reference til den nye profil
+    const caseResult = await db.query(
+      `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)
+       OUTPUT INSERTED.case_id
+       VALUES (@profil_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
+      [
+        { name: 'profil_id',          value: profil_id },
         { name: 'navn',               value: navn },
         { name: 'beskrivelse',        value: beskrivelse },
         { name: 'ejendomspris',       value: ejendomspris || 0 },
         { name: 'koebs_omkostninger', value: koebs_omkostninger || 0 },
       ]
     );
-    res.status(201).json(result.recordset[0]);
+    res.status(201).json(caseResult.recordset[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
