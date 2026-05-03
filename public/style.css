@@ -344,3 +344,9 @@ nav a:hover {
 .tab-indhold.aktiv {
   display: block;
 }
+
+textarea {
+  width: 100%;
+  height: 80px;
+  resize: vertical;
+}

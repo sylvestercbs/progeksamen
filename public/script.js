@@ -13,7 +13,7 @@ let valgtPostnummer = null;
 let valgtBynavn = null;
 
 // 2. Opretter et kort
-let map = L.map("map").setView([55.6761, 12.5683], 13);
+let map = L.map("map").setView([55.6761, 12.5683], 15);
 let satelliteLayer = null;
 let matrikelLayer = null;
 let marker = null;
@@ -225,7 +225,7 @@ function visKort() {
     [valgtLat + 0.002, valgtLon + 0.002]
   ];
 
-  const zoom = map.getBoundsZoom(bounds) + 1;
+  const zoom = map.getBoundsZoom(bounds) + 2;
   map.setView([valgtLat, valgtLon], zoom);
 
   satelliteLayer = L.imageOverlay(
