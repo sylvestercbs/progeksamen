@@ -79,25 +79,163 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("case-formular").style.display = "block";
 });
 
-// 6. Når brugeren klikker "Opret case"
-document.getElementById("opret-case-knap").addEventListener("click", async function() {
+// Gemmer renovering og driftsposter lokalt i arrays indtil casen oprettes
+const renoveringer = [];
+const driftsposter = [];
+const udlejningsposter = [];
+
+// Hjælpefunktion der skjuler alle trin og viser kun det ønskede
+function visTrin(nummer) {
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById(`trin-${i}`).style.display = i === nummer ? "block" : "none";
+  }
+  document.getElementById("trin-indikator").textContent = `Trin ${nummer} af 5`;
+}
+
+document.getElementById("trin1-naeste").addEventListener("click", function () {
   const navn = document.getElementById("case-navn").value.trim();
-  if (!navn) {
-    alert("Indtast et navn til casen");
+  const pris = document.getElementById("case-ejendomspris").value;
+  if (!navn || !pris) {
+    alert("Udfyld casenavn og ejendomspris");
     return;
   }
+  visTrin(2);
+});
 
-  const res = await fetch('/api/cases', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+document.getElementById("trin2-tilbage").addEventListener("click", () => visTrin(1));
+document.getElementById("trin2-naeste").addEventListener("click", function () {
+  const beloeb  = document.getElementById("laan-beloeb").value;
+  const rente   = document.getElementById("laan-rente").value;
+  const loebetid = document.getElementById("laan-loebetid").value;
+  if (!beloeb || !rente || !loebetid) {
+    alert("Udfyld lånebeløb, rente og løbetid");
+    return;
+  }
+  visTrin(3);
+});
+
+document.getElementById("trin3-tilbage").addEventListener("click", () => visTrin(2));
+document.getElementById("trin3-naeste").addEventListener("click", () => visTrin(4));
+
+// Tilføjer renovering til lokal liste uden at gemme i database endnu
+document.getElementById("renovering-tilfoej").addEventListener("click", function () {
+  const beskrivelse = document.getElementById("renovering-beskrivelse").value.trim();
+  const beloeb      = document.getElementById("renovering-beloeb").value;
+  const aar         = document.getElementById("renovering-aar").value;
+  if (!beskrivelse || !beloeb || !aar) {
+    alert("Udfyld alle renoveringsfelter");
+    return;
+  }
+  renoveringer.push({ beskrivelse, beloeb: parseFloat(beloeb), planlagt_aar: parseInt(aar) });
+  const li = document.createElement("li");
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (år ${aar})`;
+  document.getElementById("renovering-liste").appendChild(li);
+  document.getElementById("renovering-beskrivelse").value = "";
+  document.getElementById("renovering-beloeb").value = "";
+  document.getElementById("renovering-aar").value = "";
+});
+
+document.getElementById("trin4-tilbage").addEventListener("click", () => visTrin(3));
+document.getElementById("trin4-naeste").addEventListener("click", () => visTrin(5));
+
+document.getElementById("drift-tilfoej").addEventListener("click", function () {
+  const beskrivelse  = document.getElementById("drift-beskrivelse").value.trim();
+  const beloeb       = document.getElementById("drift-beloeb").value;
+  const er_maanedlig = document.getElementById("drift-frekvens").value;
+  if (!beskrivelse || !beloeb) {
+    alert("Udfyld beskrivelse og beløb");
+    return;
+  }
+  driftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  const li = document.createElement("li");
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"})`;
+  document.getElementById("drift-liste").appendChild(li);
+  document.getElementById("drift-beskrivelse").value = "";
+  document.getElementById("drift-beloeb").value = "";
+});
+
+document.getElementById("trin5-tilbage").addEventListener("click", () => visTrin(4));
+
+document.getElementById("udlejning-tilfoej").addEventListener("click", function () {
+  const posttype     = document.getElementById("udlejning-type").value;
+  const beloeb       = document.getElementById("udlejning-beloeb").value;
+  const er_maanedlig = document.getElementById("udlejning-frekvens").value;
+  if (!beloeb) {
+    alert("Udfyld beløb");
+    return;
+  }
+  udlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  const li = document.createElement("li");
+  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"})`;
+  document.getElementById("udlejning-liste").appendChild(li);
+  document.getElementById("udlejning-beloeb").value = "";
+});
+
+// Opretter casen og alle tilknyttede poster i rækkefølge når brugeren klikker Opret
+document.getElementById("opret-case-knap").addEventListener("click", async function () {
+  const navn             = document.getElementById("case-navn").value.trim();
+  const beskrivelse      = document.getElementById("case-beskrivelse").value.trim();
+  const ejendomspris     = parseFloat(document.getElementById("case-ejendomspris").value);
+  const koebs_omkostninger = parseFloat(document.getElementById("case-koebs-omkostninger").value) || 0;
+  const laanebeloeb      = parseFloat(document.getElementById("laan-beloeb").value);
+  const rentesats        = parseFloat(document.getElementById("laan-rente").value);
+  const loebetid_aar     = parseInt(document.getElementById("laan-loebetid").value);
+  const afdragsfri       = parseInt(document.getElementById("laan-afdragsfri").value) || 0;
+  const laantype         = document.getElementById("laan-type").value;
+
+  // Opretter selve casen først da alle andre poster refererer til case_id
+  const caseRes = await fetch("/api/cases", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      ejendom_id:  valgtEjendomId,
-      navn:        navn,
-      beskrivelse: document.getElementById("case-beskrivelse").value.trim(),
+      ejendom_id: valgtEjendomId,
+      navn,
+      beskrivelse,
+      ejendomspris,
+      koebs_omkostninger,
     })
   });
-  const data = await res.json();
-  document.getElementById("case-besked").textContent = "Case oprettet med ID: " + data.case_id;
+  const caseData = await caseRes.json();
+  valgtEjendomId = caseData.case_id;
+
+  // Opretter lånet med reference til den nye case
+  await fetch("/api/laan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      case_id: caseData.case_id,
+      laantype,
+      laanebeloeb,
+      rentesats,
+      loebetid_aar,
+      afdragsfri_periode_aar: afdragsfri,
+    })
+  });
+
+  // Gemmer alle driftsposter og udlejningsposter der blev tilføjet undervejs
+  for (const post of driftsposter) {
+    await fetch("/api/driftsomkostninger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: caseData.case_id, ...post })
+    });
+  }
+
+  for (const post of udlejningsposter) {
+    await fetch("/api/udlejning", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: caseData.case_id, ...post })
+    });
+  }
+
+  document.getElementById("case-besked").textContent = "Case oprettet med ID: " + caseData.case_id;
+  document.getElementById("simulering-formular").style.display = "block";
+
+  // Udfylder simuleringsfelterne med de lånedata brugeren netop har indtastet
+  document.getElementById("sim-laanebeloeb").value = laanebeloeb;
+  document.getElementById("sim-rentesats").value   = rentesats;
+  document.getElementById("sim-loebetid").value    = loebetid_aar;
 });
 
 // 7. Når brugeren klikker "Vis kort"
@@ -139,16 +277,6 @@ document.getElementById("kort-knap").addEventListener("click", function() {
 
 // Holder Chart.js-instansen så den kan ødelægges og genskabes ved ny simulering
 let simuleringsGraf = null;
-
-// Viser simuleringsformularen når en case er oprettet
-// valgtEjendomId sættes i BBR-eventet og valgtCaseId sættes herunder
-document.getElementById("opret-case-knap").addEventListener("click", async function () {
-  // Bruger den allerede eksisterende case-oprettelse ovenfor i script.js
-  // Formularen vises kun hvis oprettelsen lykkedes (valgtEjendomId er sat)
-  if (valgtEjendomId) {
-    document.getElementById("simulering-formular").style.display = "block";
-  }
-});
 
 document.getElementById("simuler-knap").addEventListener("click", async function () {
   const pris         = parseFloat(document.getElementById("sim-laanebeloeb").value);
