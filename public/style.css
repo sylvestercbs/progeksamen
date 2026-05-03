@@ -47,3 +47,30 @@ label {
   height: 600px;
   border: 1px solid #ccc;
 }
+
+.tab-knapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-knap {
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #eee;
+  border: 1px solid #ccc;
+}
+
+.tab-knap.aktiv {
+  background: steelblue;
+  color: white;
+  border-color: steelblue;
+}
+
+.tab-indhold {
+  display: none;
+}
+
+.tab-indhold.aktiv {
+  display: block;
+}

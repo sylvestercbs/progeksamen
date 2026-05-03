@@ -26,12 +26,16 @@
 <div id="case-formular" style="display:none">
   <h3>Opret investeringscase</h3>
 
-  <!-- Trin-indikator så brugeren kan se hvor de er -->
-  <p id="trin-indikator"></p>
+  <div class="tab-knapper">
+    <button class="tab-knap aktiv" data-tab="tab-koeb">1. Køb</button>
+    <button class="tab-knap" data-tab="tab-finansiering">2. Finansiering</button>
+    <button class="tab-knap" data-tab="tab-renovering">3. Renovering</button>
+    <button class="tab-knap" data-tab="tab-drift">4. Driftsbudget</button>
+    <button class="tab-knap" data-tab="tab-udlejning">5. Udlejning</button>
+  </div>
 
-  <!-- Side 1: Køb -->
-  <div id="trin-1">
-    <h4>1/5 Køb</h4>
+  <div id="tab-koeb" class="tab-indhold aktiv">
+    <h4>Køb</h4>
     <label>Casenavn:<br>
       <input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
     </label><br>
@@ -43,13 +47,11 @@
     </label><br>
     <label>Købsomkostninger (kr.):<br>
       <input type="number" id="case-koebs-omkostninger" placeholder="fx 100000">
-    </label><br>
-    <button id="trin1-naeste">Næste</button>
+    </label>
   </div>
 
-  <!-- Side 2: Finansiering -->
-  <div id="trin-2" style="display:none">
-    <h4>2/5 Finansiering</h4>
+  <div id="tab-finansiering" class="tab-indhold">
+    <h4>Finansiering</h4>
     <label>Lånebeløb (kr.):<br>
       <input type="number" id="laan-beloeb" placeholder="fx 2400000">
     </label><br>
@@ -60,21 +62,18 @@
       <input type="number" id="laan-loebetid" placeholder="30">
     </label><br>
     <label>Afdragsfri periode (år):<br>
-      <input type="number" id="laan-afdragsfri" placeholder="0" value="0">
+      <input type="number" id="laan-afdragsfri" value="0">
     </label><br>
     <label>Låntype:<br>
       <select id="laan-type">
         <option value="Realkredit">Realkredit</option>
         <option value="Banklaan">Banklån</option>
       </select>
-    </label><br>
-    <button id="trin2-tilbage">Tilbage</button>
-    <button id="trin2-naeste">Næste</button>
+    </label>
   </div>
 
-  <!-- Side 3: Renovering -->
-  <div id="trin-3" style="display:none">
-    <h4>3/5 Renovering</h4>
+  <div id="tab-renovering" class="tab-indhold">
+    <h4>Renovering</h4>
     <p>Tilføj planlagte renoveringer (valgfrit)</p>
     <label>Beskrivelse:<br>
       <input type="text" id="renovering-beskrivelse" placeholder="fx Nyt køkken">
@@ -87,15 +86,10 @@
     </label><br>
     <button id="renovering-tilfoej">Tilføj renovering</button>
     <ul id="renovering-liste"></ul>
-    <br>
-    <button id="trin3-tilbage">Tilbage</button>
-    <button id="trin3-naeste">Næste</button>
   </div>
 
-  <!-- Side 4: Driftsbudget -->
-  <div id="trin-4" style="display:none">
-    <h4>4/5 Driftsbudget</h4>
-    <p>Tilføj løbende driftsomkostninger</p>
+  <div id="tab-drift" class="tab-indhold">
+    <h4>Driftsbudget</h4>
     <label>Beskrivelse:<br>
       <input type="text" id="drift-beskrivelse" placeholder="fx Ejendomsskat">
     </label><br>
@@ -110,15 +104,10 @@
     </label><br>
     <button id="drift-tilfoej">Tilføj omkostning</button>
     <ul id="drift-liste"></ul>
-    <br>
-    <button id="trin4-tilbage">Tilbage</button>
-    <button id="trin4-naeste">Næste</button>
   </div>
 
-  <!-- Side 5: Udlejning -->
-  <div id="trin-5" style="display:none">
-    <h4>5/5 Udlejning</h4>
-    <p>Angiv udlejningsindtægter og udgifter (valgfrit)</p>
+  <div id="tab-udlejning" class="tab-indhold">
+    <h4>Udlejning</h4>
     <label>Type:<br>
       <select id="udlejning-type">
         <option value="Lejeindtaegt">Lejeindtægt</option>
@@ -137,11 +126,10 @@
     </label><br>
     <button id="udlejning-tilfoej">Tilføj post</button>
     <ul id="udlejning-liste"></ul>
-    <br>
-    <button id="trin5-tilbage">Tilbage</button>
-    <button id="opret-case-knap">Opret case</button>
   </div>
 
+  <br>
+  <button id="opret-case-knap">Opret case</button>
   <p id="case-besked"></p>
 </div>
 <div id="simulering-formular" style="display:none">
