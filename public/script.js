@@ -86,6 +86,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   const ejendom = await ejendomRes.json();
   valgtEjendomId = ejendom.ejendom_id;
   document.getElementById("case-formular").style.display = "block";
+  visKort();
 });
 
 // Gemmer renovering og driftsposter lokalt i arrays indtil casen oprettes
@@ -189,13 +190,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   document.getElementById("sim-loebetid").value    = loebetid_aar;
 });
 
-// 7. Når brugeren klikker "Vis kort"
-document.getElementById("kort-knap").addEventListener("click", function() {
-  if (!valgtLon || !valgtLat) {
-    alert("Vælg først en adresse");
-    return;
-  }
-
+function visKort() {
   map.setView([valgtLat, valgtLon], 17);
 
   if (satelliteLayer) map.removeLayer(satelliteLayer);
@@ -224,7 +219,7 @@ document.getElementById("kort-knap").addEventListener("click", function() {
     .addTo(map)
     .bindPopup("Valgt ejendom")
     .openPopup();
-});
+}
 
 // Skifter aktiv tab ved klik — tilføjer og fjerner CSS-klassen "aktiv"
 document.querySelectorAll(".tab-knap").forEach(knap => {
