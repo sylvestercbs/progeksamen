@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<meta charset="utf-8">
+<head>
+  <title>Ejendomsprofiler</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+<h1>Ejendomsprofiler</h1>
+<a href="/">← Tilbage til forsiden</a>
+
+<h2>Tidligere ejendomsprofiler</h2>
+<div id="ejendomme-liste">Indlæser...</div>
+
+<div id="rediger-form" style="display:none">
+  <h3>Rediger ejendom</h3>
+  <input type="hidden" id="rediger-id">
+  <label>Vejnavn: <input type="text" id="rediger-vejnavn"></label><br>
+  <label>Husnummer: <input type="text" id="rediger-husnummer"></label><br>
+  <label>Postnummer: <input type="text" id="rediger-postnummer"></label><br>
+  <label>Bynavn: <input type="text" id="rediger-bynavn"></label><br>
+  <label>Ejendomstype: <input type="text" id="rediger-ejendomstype"></label><br>
+  <label>Byggeår: <input type="number" id="rediger-byggeaar"></label><br>
+  <label>Boligareal (m²): <input type="number" id="rediger-boligareal"></label><br>
+  <label>Antal værelser: <input type="number" id="rediger-vaerelser"></label><br>
+  <button id="gem-rediger-knap">Gem ændringer</button>
+  <button id="annuller-rediger-knap">Annuller</button>
+</div>
+
+<div id="cases-sektion" style="display:none">
+  <h3 id="cases-overskrift"></h3>
+  <div id="cases-liste"></div>
+</div>
+
+<div id="sim-sektion" style="display:none">
+  <h3>Simulering: <span id="sim-casenavn"></span></h3>
+  <label>Lånebeløb (kr.): <input type="number" id="sim-laanebeloeb"></label><br>
+  <label>Rentesats (fx 0.0425): <input type="number" id="sim-rentesats" step="0.001"></label><br>
+  <label>Løbetid (år): <input type="number" id="sim-loebetid"></label><br>
+  <label>Årlig lejeindtægt (kr.): <input type="number" id="sim-lejeindtaegt" value="0"></label><br>
+  <label>Årlige udgifter (kr.): <input type="number" id="sim-udgifter" value="0"></label><br>
+  <label>Antal år: <input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
+  <button id="sim-knap">Kør simulering</button>
+</div>
+
+<div id="sim-resultat" style="display:none">
+  <h3>Simuleringsresultat</h3>
+  <canvas id="sim-graf"></canvas>
+  <div id="sim-tabel"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="ejendomme.js"></script>
+</body>
+</html>

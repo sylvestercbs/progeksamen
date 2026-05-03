@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const app = express();
 const PORT = 3000;
 const db = require("./models/database");
@@ -29,6 +30,10 @@ app.use("/api/driftsomkostninger", driftsomkostningerRouter);
 
 const udlejningRouter = require("./routes/udlejning");
 app.use("/api/udlejning", udlejningRouter);
+
+app.get("/ejendomme", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/ejendomme.html"));
+});
 
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);

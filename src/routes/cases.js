@@ -3,10 +3,20 @@ const router = express.Router();
 const db = require("../models/database");
 const InvestmentCalculator = require("../models/investmentCalculator");
 
-// Henter alle cases fra databasen og returnerer dem som JSON
+// Henter cases — filtrerer på ejendom_id hvis query param er angivet
 router.get("/", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM EjendomInvestApp.Investeringscase");
+    let result;
+    if (req.query.ejendom_id) {
+      result = await db.query(
+        `SELECT ic.* FROM EjendomInvestApp.Investeringscase ic
+         JOIN EjendomInvestApp.Ejendomsprofil ep ON ic.profil_id = ep.profil_id
+         WHERE ep.ejendom_id = @ejendom_id`,
+        [{ name: "ejendom_id", value: req.query.ejendom_id }]
+      );
+    } else {
+      result = await db.query("SELECT * FROM EjendomInvestApp.Investeringscase");
+    }
     res.json(result.recordset);
   } catch (err) {
     res.status(500).json({ error: err.message });
