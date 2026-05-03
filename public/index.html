@@ -14,6 +14,7 @@
 </div>
 <p>Valgt adresse: <span id="valgtadresse"></span></p>
 <button id="bbr-knap">Hent ejendomsdata</button>
+<p id="bbr-fejl" style="color:red; display:none"></p>
 <div id="ejendomsprofil" style="display:none">
 <h2>Ejendomsprofil</h2>
 <p><strong>Adresse:</strong> <span id="profil-adresse"></span></p>
@@ -149,6 +150,25 @@
 <button id="kort-knap">Vis kort</button>
 <h3>Kort</h3>
 <div id="map"></div>
+<hr>
+<h2>Tidligere ejendomsprofiler</h2>
+<div id="ejendomme-liste">Indlæser...</div>
+
+<div id="rediger-form" style="display:none">
+  <h3>Rediger ejendom</h3>
+  <input type="hidden" id="rediger-id">
+  <label>Vejnavn: <input type="text" id="rediger-vejnavn"></label><br>
+  <label>Husnummer: <input type="text" id="rediger-husnummer"></label><br>
+  <label>Postnummer: <input type="text" id="rediger-postnummer"></label><br>
+  <label>Bynavn: <input type="text" id="rediger-bynavn"></label><br>
+  <label>Ejendomstype: <input type="text" id="rediger-ejendomstype"></label><br>
+  <label>Byggeår: <input type="number" id="rediger-byggeaar"></label><br>
+  <label>Boligareal (m²): <input type="number" id="rediger-boligareal"></label><br>
+  <label>Antal værelser: <input type="number" id="rediger-vaerelser"></label><br>
+  <button id="gem-rediger-knap">Gem ændringer</button>
+  <button id="annuller-rediger-knap">Annuller</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
 <script src="/dawa/dawa-autocomplete2.min.js"></script>

@@ -44,7 +44,13 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT * FROM EjendomInvestApp.Ejendom ORDER BY oprettet DESC'
+      `SELECT e.*,
+        (SELECT COUNT(*)
+         FROM EjendomInvestApp.Ejendomsprofil ep
+         JOIN EjendomInvestApp.Investeringscase ic ON ic.profil_id = ep.profil_id
+         WHERE ep.ejendom_id = e.ejendom_id) AS antal_cases
+       FROM EjendomInvestApp.Ejendom e
+       ORDER BY e.oprettet DESC`
     );
     res.status(200).json(result.recordset);
   } catch (err) {
@@ -95,11 +101,17 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
   try {
-    await db.query(
-      'DELETE FROM EjendomInvestApp.Ejendom WHERE ejendom_id = @id',
-      [{ name: 'id', value: req.params.id }]
-    );
+    // Slet i rækkefølge pga. FK-constraints: børn før forældre
+    await db.query(`DELETE FROM EjendomInvestApp.Laan WHERE case_id IN (SELECT case_id FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id))`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Driftsomkostning WHERE case_id IN (SELECT case_id FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id))`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Udlejning WHERE case_id IN (SELECT case_id FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id))`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Renovering WHERE case_id IN (SELECT case_id FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id))`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Simulering WHERE case_id IN (SELECT case_id FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id))`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Investeringscase WHERE profil_id IN (SELECT profil_id FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id)`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Ejendomsprofil WHERE ejendom_id = @id`, [{ name: 'id', value: id }]);
+    await db.query(`DELETE FROM EjendomInvestApp.Ejendom WHERE ejendom_id = @id`, [{ name: 'id', value: id }]);
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: err.message });
