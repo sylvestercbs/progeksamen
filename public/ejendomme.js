@@ -84,6 +84,7 @@ document.getElementById("annuller-rediger-knap").addEventListener("click", funct
 });
 
 async function visCases(ejendomId, adresse) {
+  aktivEjendomId = ejendomId;
   const res = await fetch(`/api/cases?ejendom_id=${ejendomId}`);
   const cases = await res.json();
   const sektion = document.getElementById("cases-sektion");
@@ -113,8 +114,13 @@ async function visCases(ejendomId, adresse) {
   sektion.scrollIntoView();
 }
 
+let aktivEjendomId = null;
 let aktivCaseId = null;
 let simuleringsGraf = null;
+
+function gaaTilNyCase() {
+  window.location.href = "/?ejendom_id=" + aktivEjendomId;
+}
 
 async function klargørSimulering(caseId, casenavn) {
   aktivCaseId = caseId;

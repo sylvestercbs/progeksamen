@@ -359,3 +359,22 @@ function visSimulering(resultater) {
   html += "</table>";
   document.getElementById("simulering-tabel").innerHTML = html;
 }
+
+// Hvis siden åbnes med ?ejendom_id=X (omdirigeret fra /ejendomme), hentes ejendommen
+// og case-formularen vises direkte uden at brugeren skal søge på ny
+const fraEjendomId = new URLSearchParams(window.location.search).get("ejendom_id");
+if (fraEjendomId) {
+  fetch("/api/ejendomme/" + fraEjendomId)
+    .then(r => r.json())
+    .then(e => {
+      valgtEjendomId = e.ejendom_id;
+      document.getElementById("profil-adresse").textContent    = `${e.vejnavn} ${e.husnummer}, ${e.postnummer} ${e.bynavn}`;
+      document.getElementById("profil-ejendomstype").textContent = e.ejendomstype || "Ikke tilgængeligt";
+      document.getElementById("profil-byggeaar").textContent   = e.byggeaar || "Ikke tilgængeligt";
+      document.getElementById("profil-boligareal").textContent = e.boligareal_m2 || "Ikke tilgængeligt";
+      document.getElementById("profil-vaerelser").textContent  = e.antal_vaerelser || "Ikke tilgængeligt";
+      document.getElementById("ejendomsprofil").style.display  = "block";
+      document.getElementById("case-formular").style.display   = "block";
+      document.getElementById("ejendomsprofil").scrollIntoView({ behavior: "smooth" });
+    });
+}
