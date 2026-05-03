@@ -190,6 +190,14 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
     body: JSON.stringify({ case_id: caseData.case_id, laantype, laanebeloeb, rentesats, loebetid_aar, afdragsfri_periode_aar: afdragsfri })
   });
 
+  for (const post of renoveringer) {
+    await fetch("/api/renoveringer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: caseData.case_id, ...post })
+    });
+  }
+
   for (const post of driftsposter) {
     await fetch("/api/driftsomkostninger", {
       method: "POST",

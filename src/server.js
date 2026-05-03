@@ -31,6 +31,9 @@ app.use("/api/driftsomkostninger", driftsomkostningerRouter);
 const udlejningRouter = require("./routes/udlejning");
 app.use("/api/udlejning", udlejningRouter);
 
+const renoveringerRouter = require("./routes/renoveringer");
+app.use("/api/renoveringer", renoveringerRouter);
+
 app.get("/ejendomme", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/ejendomme.html"));
 });
