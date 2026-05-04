@@ -5,7 +5,7 @@ const db = require('../models/database');
 router.post('/', async (req, res) => {
   try {
     const { eksternt_id, vejnavn, husnummer, postnummer, bynavn,
-            ejendomstype, byggeaar, boligareal_m2, antal_vaerelser } = req.body;
+            ejendomstype, byggeaar, boligareal_m2, antal_vaerelser, grundareal_m2 } = req.body;
 
     if (!eksternt_id) return res.status(400).json({ error: 'Mangler adresse-ID' });
 
@@ -19,9 +19,9 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(
       `INSERT INTO EjendomInvestApp.Ejendom
-         (eksternt_id, vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser)
+         (eksternt_id, vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser, grundareal_m2)
        OUTPUT INSERTED.ejendom_id
-       VALUES (@eksternt_id, @vejnavn, @husnummer, @postnummer, @bynavn, @ejendomstype, @byggeaar, @boligareal_m2, @antal_vaerelser)`,
+       VALUES (@eksternt_id, @vejnavn, @husnummer, @postnummer, @bynavn, @ejendomstype, @byggeaar, @boligareal_m2, @antal_vaerelser, @grundareal_m2)`,
       [
         { name: 'eksternt_id',     value: eksternt_id },
         { name: 'vejnavn',         value: vejnavn },
@@ -32,6 +32,7 @@ router.post('/', async (req, res) => {
         { name: 'byggeaar',        value: byggeaar },
         { name: 'boligareal_m2',   value: boligareal_m2 },
         { name: 'antal_vaerelser', value: antal_vaerelser },
+        { name: 'grundareal_m2',   value: grundareal_m2 },
       ]
     );
 
@@ -73,12 +74,13 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser } = req.body;
+    const { vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser, grundareal_m2 } = req.body;
     const result = await db.query(
       `UPDATE EjendomInvestApp.Ejendom
        SET vejnavn = @vejnavn, husnummer = @husnummer, postnummer = @postnummer,
            bynavn = @bynavn, ejendomstype = @ejendomstype, byggeaar = @byggeaar,
-           boligareal_m2 = @boligareal_m2, antal_vaerelser = @antal_vaerelser
+           boligareal_m2 = @boligareal_m2, antal_vaerelser = @antal_vaerelser,
+           grundareal_m2 = @grundareal_m2
        OUTPUT INSERTED.*
        WHERE ejendom_id = @id`,
       [
@@ -90,6 +92,7 @@ router.put('/:id', async (req, res) => {
         { name: 'byggeaar',        value: byggeaar },
         { name: 'boligareal_m2',   value: boligareal_m2 },
         { name: 'antal_vaerelser', value: antal_vaerelser },
+        { name: 'grundareal_m2',   value: grundareal_m2 },
         { name: 'id',              value: req.params.id },
       ]
     );

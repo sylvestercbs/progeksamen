@@ -65,6 +65,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("profil-byggeaar").textContent = data.byggeaar || "Ikke tilgængeligt";
   document.getElementById("profil-boligareal").textContent = data.boligareal || "Ikke tilgængeligt";
   document.getElementById("profil-vaerelser").textContent = data.antalVaerelser || "Ikke tilgængeligt";
+  document.getElementById("profil-grundareal").textContent = data.grundArealM2 || "Ikke tilgængeligt";
 
   // Nulstil formular og arrays fra forrige søgning
   document.getElementById("case-navn").value = "";
@@ -106,6 +107,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
       byggeaar:        data.byggeaar,
       boligareal_m2:   data.boligareal,
       antal_vaerelser: data.antalVaerelser,
+      grundareal_m2:   data.grundArealM2,
     })
   });
   const ejendom = await ejendomRes.json();
