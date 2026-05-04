@@ -78,6 +78,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("laan-afdragsfri").value = "0";
   document.getElementById("renovering-liste").innerHTML = "";
   document.getElementById("drift-liste").innerHTML = "";
+  document.getElementById("drift-total").style.display = "none";
   document.getElementById("udlejning-liste").innerHTML = "";
   document.getElementById("case-besked").textContent = "";
   document.getElementById("simulering-formular").style.display = "none";
@@ -148,7 +149,18 @@ document.getElementById("drift-tilfoej").addEventListener("click", function () {
   document.getElementById("drift-liste").appendChild(li);
   document.getElementById("drift-beskrivelse").value = "";
   document.getElementById("drift-beloeb").value = "";
+  opdaterDriftsTotal();
 });
+
+function opdaterDriftsTotal() {
+  let aarligTotal = 0;
+  for (let i = 0; i < driftsposter.length; i++) {
+    aarligTotal += driftsposter[i].er_maanedlig ? driftsposter[i].beloeb * 12 : driftsposter[i].beloeb;
+  }
+  document.getElementById("drift-total-maaned").textContent = Math.round(aarligTotal / 12).toLocaleString("da-DK");
+  document.getElementById("drift-total-aar").textContent    = Math.round(aarligTotal).toLocaleString("da-DK");
+  document.getElementById("drift-total").style.display = "block";
+}
 
 document.getElementById("udlejning-tilfoej").addEventListener("click", function () {
   const posttype     = document.getElementById("udlejning-type").value;
