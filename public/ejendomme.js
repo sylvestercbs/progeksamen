@@ -126,7 +126,8 @@ async function klargørSimulering(caseId, casenavn) {
   aktivCaseId = caseId;
   document.getElementById("sim-casenavn").textContent = casenavn;
 
-  const laan = await fetch(`/api/laan/${caseId}`).then(r => r.json());
+  const laanRes = await fetch(`/api/laan/${caseId}`);
+  const laan = await laanRes.json();
   if (laan.length) {
     document.getElementById("sim-laanebeloeb").value = laan[0].laanebeloeb;
     document.getElementById("sim-rentesats").value   = laan[0].rentesats;
