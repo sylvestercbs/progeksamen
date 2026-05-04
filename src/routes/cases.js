@@ -84,10 +84,8 @@ router.put("/:id", async (req, res) => {
       "UPDATE EjendomInvestApp.Investeringscase SET navn = @navn, ejendomspris = @ejendomspris WHERE case_id = @id",
       [
         { name: "navn",         value: navn },
-        { name: "ejendomspris", value: ejendomspris },
+        { name: "ejendomspris", value: ejendomspris || 0 },
         { name: "id",           value: req.params.id },
-        { name: "ejendomspris",       value: ejendomspris || 0 },
-        { name: "koebs_omkostninger", value: koebs_omkostninger || 0 },
       ]
     );
     res.json({ message: "Case opdateret" });
