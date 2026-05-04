@@ -13,7 +13,7 @@ let valgtPostnummer = null;
 let valgtBynavn = null;
 
 // 2. Opretter et kort
-let map = L.map("map").setView([55.6761, 12.5683], 15);
+let map = L.map("map", { zoomControl: false }).setView([55.6761, 12.5683], 15); // Fjerner zoom-knapper fra kortet
 let satelliteLayer = null;
 let matrikelLayer = null;
 let marker = null;
