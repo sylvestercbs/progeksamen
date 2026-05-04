@@ -22,3 +22,17 @@ test("simuler returnerer korrekt antal rækker", () => {
   const resultater = calc.simuler(10, 120000, 30000);
   expect(resultater).toHaveLength(11);
 });
+
+// Test 4: positivt cashflow når lejeindtægt er større end ydelse og udgifter tilsammen
+test("beregnAarligtCashflow er positiv ved høj lejeindtægt", () => {
+  const calc = new InvestmentCalculator(2500000, 2000000, 0.0425, 30);
+  const cashflow = calc.beregnAarligtCashflow(200000, 10000);
+  expect(cashflow).toBeGreaterThan(0);
+});
+
+// Test 5: negativt cashflow er en gyldig case og ikke en fejl — lav leje er en reel investeringsrisiko
+test("beregnAarligtCashflow er negativ ved lav lejeindtægt", () => {
+  const calc = new InvestmentCalculator(2500000, 2000000, 0.0425, 30);
+  const cashflow = calc.beregnAarligtCashflow(10000, 5000);
+  expect(cashflow).toBeLessThan(0);
+});
