@@ -1,191 +1,193 @@
 <!doctype html>
 <html>
-<meta charset="utf-8">
 <head>
-<title>Ejendomsopslag</title>
-<link href="style.css" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <meta charset="utf-8">
+  <title>Ejendomsopslag</title>
+  <link href="style.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
 
-<header>
-  <span class="logo">Ejendomsopslag</span>
-  <nav>
-    <a href="/">Forside</a>
-    <a href="/ejendomme">Mine Ejendomme</a>
-  </nav>
-</header>
+  <header>
+    <span class="logo">Ejendomsopslag</span>
+    <nav>
+      <a href="/">Forside</a>
+      <a href="/ejendomme">Mine Ejendomme</a>
+    </nav>
+  </header>
 
-<section class="hero">
-  <h1>Ejendomsopslag</h1>
-  <p>Søg på en adresse og hent ejendomsdata, opret investeringscases og simuler afkast</p>
+  <section class="hero">
+    <h1>Ejendomsopslag</h1>
+    <p>Søg på en adresse og hent ejendomsdata, opret investeringscases og simuler afkast</p>
 
-  <div class="card">
-    <label for="adresse">Adresse:</label>
-    <div class="autocomplete-container">
-      <input type="text" id="adresse" placeholder="fx Nørrebrogade 42, 2200 København N">
+    <div class="card">
+      <label for="adresse">Adresse:</label>
+      <div class="autocomplete-container">
+        <input type="text" id="adresse" placeholder="fx Nørrebrogade 42, 2200 København N">
+      </div>
+      <p>Valgt adresse: <span id="valgtadresse"></span></p>
+      <button id="bbr-knap" class="primær-knap">Hent ejendomsdata</button>
+      <p id="bbr-fejl" style="color:red; display:none"></p>
+
+      <div class="eller">
+        <span>Eller</span>
+      </div>
+
+      <a href="/ejendomme" class="sekundær-knap">Se Mine Tidligere Ejendomme</a>
     </div>
-    <p>Valgt adresse: <span id="valgtadresse"></span></p>
-    <button id="bbr-knap" class="primær-knap">Hent ejendomsdata</button>
-    <p id="bbr-fejl" style="color:red; display:none"></p>
+  </section>
 
-    <div class="eller">
-      <span>Eller</span>
+  <div class="indhold">
+
+    <div id="ejendomsprofil" style="display:none">
+      <h2>Ejendomsprofil</h2>
+      <p><strong>Adresse:</strong>       <span id="profil-adresse"></span></p>
+      <p><strong>Ejendomstype:</strong>  <span id="profil-ejendomstype"></span></p>
+      <p><strong>Byggeår:</strong>       <span id="profil-byggeaar"></span></p>
+      <p><strong>Boligareal:</strong>    <span id="profil-boligareal"></span> m²</p>
+      <p><strong>Antal værelser:</strong><span id="profil-vaerelser"></span></p>
+      <p><strong>Grundareal:</strong>    <span id="profil-grundareal"></span> m²</p>
     </div>
 
-    <a href="/ejendomme" class="sekundær-knap">Se Mine Tidligere Ejendomme</a>
+    <div id="case-formular" style="display:none">
+      <h3>Opret investeringscase</h3>
+
+      <div class="tab-knapper">
+        <button class="tab-knap aktiv" data-tab="tab-koeb">1. Køb</button>
+        <button class="tab-knap" data-tab="tab-finansiering">2. Finansiering</button>
+        <button class="tab-knap" data-tab="tab-renovering">3. Renovering</button>
+        <button class="tab-knap" data-tab="tab-drift">4. Driftsbudget</button>
+        <button class="tab-knap" data-tab="tab-udlejning">5. Udlejning</button>
+      </div>
+
+      <div id="tab-koeb" class="tab-indhold aktiv">
+        <h4>Køb</h4>
+        <label>Casenavn:<br>
+          <input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
+        </label><br>
+        <label>Beskrivelse:<br>
+          <textarea id="case-beskrivelse" placeholder="Beskriv investeringen..."></textarea>
+        </label><br>
+        <label>Ejendomspris (kr.):<br>
+          <input type="number" id="case-ejendomspris" placeholder="fx 3000000">
+        </label><br>
+        <label>Købsomkostninger (kr.):<br>
+          <input type="number" id="case-koebs-omkostninger" placeholder="fx 100000">
+        </label>
+      </div>
+
+      <div id="tab-finansiering" class="tab-indhold">
+        <h4>Finansiering</h4>
+        <label>Lånebeløb (kr.):<br>
+          <input type="number" id="laan-beloeb" placeholder="fx 2400000">
+        </label><br>
+        <label>Rentesats (fx 0.0425 for 4,25%):<br>
+          <input type="number" id="laan-rente" step="0.001" placeholder="0.0425">
+        </label><br>
+        <label>Løbetid (år):<br>
+          <input type="number" id="laan-loebetid" placeholder="30">
+        </label><br>
+        <label>Afdragsfri periode (år):<br>
+          <input type="number" id="laan-afdragsfri" value="0">
+        </label><br>
+        <label>Låntype:<br>
+          <select id="laan-type">
+            <option value="Realkredit">Realkredit</option>
+            <option value="Banklaan">Banklån</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="tab-renovering" class="tab-indhold">
+        <h4>Renovering</h4>
+        <p>Tilføj planlagte renoveringer (valgfrit)</p>
+        <label>Beskrivelse:<br>
+          <textarea id="renovering-beskrivelse" placeholder="fx Nyt køkken"></textarea>
+        </label><br>
+        <label>Beløb (kr.):<br>
+          <input type="number" id="renovering-beloeb" placeholder="fx 150000">
+        </label><br>
+        <label>Planlagt år (relativt til køb):<br>
+          <input type="number" id="renovering-aar" placeholder="fx 3">
+        </label><br>
+        <button id="renovering-tilfoej">Tilføj renovering</button>
+        <ul id="renovering-liste"></ul>
+      </div>
+
+      <div id="tab-drift" class="tab-indhold">
+        <h4>Driftsbudget</h4>
+        <label>Beskrivelse:<br>
+          <textarea id="drift-beskrivelse" placeholder="fx Ejendomsskat"></textarea>
+        </label><br>
+        <label>Beløb (kr.):<br>
+          <input type="number" id="drift-beloeb" placeholder="fx 1500">
+        </label><br>
+        <label>Frekvens:<br>
+          <select id="drift-frekvens">
+            <option value="1">Månedlig</option>
+            <option value="0">Årlig</option>
+          </select>
+        </label><br>
+        <button id="drift-tilfoej">Tilføj omkostning</button>
+        <ul id="drift-liste"></ul>
+      </div>
+
+      <div id="tab-udlejning" class="tab-indhold">
+        <h4>Udlejning</h4>
+        <label>Type:<br>
+          <select id="udlejning-type">
+            <option value="Lejeindtaegt">Lejeindtægt</option>
+            <option value="Ejendomsmaegler">Ejendomsmægler</option>
+            <option value="Tomgang">Tomgang</option>
+          </select>
+        </label><br>
+        <label>Beløb (kr.) — negativt for udgift:<br>
+          <input type="number" id="udlejning-beloeb" placeholder="fx 10000">
+        </label><br>
+        <label>Frekvens:<br>
+          <select id="udlejning-frekvens">
+            <option value="1">Månedlig</option>
+            <option value="0">Årlig</option>
+          </select>
+        </label><br>
+        <button id="udlejning-tilfoej">Tilføj post</button>
+        <ul id="udlejning-liste"></ul>
+        <br>
+        <button id="opret-case-knap">Opret case</button>
+      </div>
+
+      <p id="case-besked"></p>
+    </div>
+
+    <div id="simulering-formular" style="display:none">
+      <h3>Simuler investering</h3>
+      <label>Lånebeløb (kr.):        <input type="number" id="sim-laanebeloeb" value="2000000"></label><br>
+      <label>Rentesats (fx 0.0425):  <input type="number" id="sim-rentesats" step="0.001" value="0.0425"></label><br>
+      <label>Løbetid (år):           <input type="number" id="sim-loebetid" value="30"></label><br>
+      <label>Årlig lejeindtægt (kr.):<input type="number" id="sim-lejeindtaegt" value="120000"></label><br>
+      <label>Årlige udgifter (kr.):  <input type="number" id="sim-udgifter" value="30000"></label><br>
+      <label>Simuler antal år:       <input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
+      <button id="simuler-knap">Kør simulering</button>
+    </div>
+
+    <div id="simulering-resultat" style="display:none">
+      <h3>Simuleringsresultat</h3>
+      <canvas id="simulering-graf"></canvas>
+      <div id="simulering-tabel"></div>
+    </div>
+
+    <h3>Kort</h3>
+    <div id="map"></div>
+    <hr>
+
   </div>
-</section>
 
-<div class="indhold">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
+  <script src="/dawa/dawa-autocomplete2.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/script.js"></script>
 
-<div id="ejendomsprofil" style="display:none">
-<h2>Ejendomsprofil</h2>
-<p><strong>Adresse:</strong> <span id="profil-adresse"></span></p>
-<p><strong>Ejendomstype:</strong> <span id="profil-ejendomstype"></span></p>
-<p><strong>Byggeår:</strong> <span id="profil-byggeaar"></span></p>
-<p><strong>Boligareal:</strong> <span id="profil-boligareal"></span> m²</p>
-<p><strong>Antal værelser:</strong> <span id="profil-vaerelser"></span></p>
-<p><strong>Grundareal:</strong> <span id="profil-grundareal"></span> m²</p>
-</div>
-
-<div id="case-formular" style="display:none">
-  <h3>Opret investeringscase</h3>
-
-  <div class="tab-knapper">
-    <button class="tab-knap aktiv" data-tab="tab-koeb">1. Køb</button>
-    <button class="tab-knap" data-tab="tab-finansiering">2. Finansiering</button>
-    <button class="tab-knap" data-tab="tab-renovering">3. Renovering</button>
-    <button class="tab-knap" data-tab="tab-drift">4. Driftsbudget</button>
-    <button class="tab-knap" data-tab="tab-udlejning">5. Udlejning</button>
-  </div>
-
-  <div id="tab-koeb" class="tab-indhold aktiv">
-    <h4>Køb</h4>
-    <label>Casenavn:<br>
-      <input type="text" id="case-navn" placeholder="fx Køb af Nørrebro-lejlighed">
-    </label><br>
-    <label>Beskrivelse:<br>
-      <textarea id="case-beskrivelse" placeholder="Beskriv investeringen..."></textarea>
-    </label><br>
-    <label>Ejendomspris (kr.):<br>
-      <input type="number" id="case-ejendomspris" placeholder="fx 3000000">
-    </label><br>
-    <label>Købsomkostninger (kr.):<br>
-      <input type="number" id="case-koebs-omkostninger" placeholder="fx 100000">
-    </label>
-  </div>
-
-  <div id="tab-finansiering" class="tab-indhold">
-    <h4>Finansiering</h4>
-    <label>Lånebeløb (kr.):<br>
-      <input type="number" id="laan-beloeb" placeholder="fx 2400000">
-    </label><br>
-    <label>Rentesats (fx 0.0425 for 4,25%):<br>
-      <input type="number" id="laan-rente" step="0.001" placeholder="0.0425">
-    </label><br>
-    <label>Løbetid (år):<br>
-      <input type="number" id="laan-loebetid" placeholder="30">
-    </label><br>
-    <label>Afdragsfri periode (år):<br>
-      <input type="number" id="laan-afdragsfri" value="0">
-    </label><br>
-    <label>Låntype:<br>
-      <select id="laan-type">
-        <option value="Realkredit">Realkredit</option>
-        <option value="Banklaan">Banklån</option>
-      </select>
-    </label>
-  </div>
-
-  <div id="tab-renovering" class="tab-indhold">
-    <h4>Renovering</h4>
-    <p>Tilføj planlagte renoveringer (valgfrit)</p>
-    <label>Beskrivelse:<br>
-      <textarea id="renovering-beskrivelse" placeholder="fx Nyt køkken"></textarea>
-    </label><br>
-    <label>Beløb (kr.):<br>
-      <input type="number" id="renovering-beloeb" placeholder="fx 150000">
-    </label><br>
-    <label>Planlagt år (relativt til køb):<br>
-      <input type="number" id="renovering-aar" placeholder="fx 3">
-    </label><br>
-    <button id="renovering-tilfoej">Tilføj renovering</button>
-    <ul id="renovering-liste"></ul>
-  </div>
-
-  <div id="tab-drift" class="tab-indhold">
-    <h4>Driftsbudget</h4>
-    <label>Beskrivelse:<br>
-      <textarea id="drift-beskrivelse" placeholder="fx Ejendomsskat"></textarea>
-    </label><br>
-    <label>Beløb (kr.):<br>
-      <input type="number" id="drift-beloeb" placeholder="fx 1500">
-    </label><br>
-    <label>Frekvens:<br>
-      <select id="drift-frekvens">
-        <option value="1">Månedlig</option>
-        <option value="0">Årlig</option>
-      </select>
-    </label><br>
-    <button id="drift-tilfoej">Tilføj omkostning</button>
-    <ul id="drift-liste"></ul>
-  </div>
-
-  <div id="tab-udlejning" class="tab-indhold">
-    <h4>Udlejning</h4>
-    <label>Type:<br>
-      <select id="udlejning-type">
-        <option value="Lejeindtaegt">Lejeindtægt</option>
-        <option value="Ejendomsmaegler">Ejendomsmægler</option>
-        <option value="Tomgang">Tomgang</option>
-      </select>
-    </label><br>
-    <label>Beløb (kr.) — negativt for udgift:<br>
-      <input type="number" id="udlejning-beloeb" placeholder="fx 10000">
-    </label><br>
-    <label>Frekvens:<br>
-      <select id="udlejning-frekvens">
-        <option value="1">Månedlig</option>
-        <option value="0">Årlig</option>
-      </select>
-    </label><br>
-    <button id="udlejning-tilfoej">Tilføj post</button>
-    <ul id="udlejning-liste"></ul>
-    <br>
-    <button id="opret-case-knap">Opret case</button>
-  </div>
-  <p id="case-besked"></p>
-</div>
-
-<div id="simulering-formular" style="display:none">
-<h3>Simuler investering</h3>
-<label>Lånebeløb (kr.): <input type="number" id="sim-laanebeloeb" value="2000000"></label><br>
-<label>Rentesats (fx 0.0425): <input type="number" id="sim-rentesats" step="0.001" value="0.0425"></label><br>
-<label>Løbetid (år): <input type="number" id="sim-loebetid" value="30"></label><br>
-<label>Årlig lejeindtægt (kr.): <input type="number" id="sim-lejeindtaegt" value="120000"></label><br>
-<label>Årlige udgifter (kr.): <input type="number" id="sim-udgifter" value="30000"></label><br>
-<label>Simuler antal år: <input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
-<button id="simuler-knap">Kør simulering</button>
-</div>
-
-<div id="simulering-resultat" style="display:none">
-<h3>Simuleringsresultat</h3>
-<canvas id="simulering-graf"></canvas>
-<div id="simulering-tabel"></div>
-</div>
-
-<h3>Kort</h3>
-<div id="map"></div>
-<hr>
-
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.4.1/core.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-<script src="/dawa/dawa-autocomplete2.min.js"></script>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/script.js"></script>
 </body>
 </html>
