@@ -10,7 +10,7 @@ async function loadEjendomme() {
     return;
   }
 
-  let html = `<table class="ejendoms-tabel">
+  let html = `<table class="data-tabel">
     <tr><th>Adresse</th><th>Oprettet</th><th>Sidst hentet</th><th>Cases</th><th>Handlinger</th></tr>`;
   ejendomme.forEach(e => {
     const adresse  = `${e.vejnavn} ${e.husnummer}, ${e.postnummer} ${e.bynavn}`;
@@ -94,7 +94,7 @@ async function visCases(ejendomId, adresse) {
   if (!cases.length) {
     document.getElementById("cases-liste").innerHTML = "<p>Ingen cases oprettet endnu.</p>";
   } else {
-    let html = `<table class="ejendoms-tabel">
+    let html = `<table class="data-tabel">
       <tr><th>Navn</th><th>Ejendomspris</th><th>Oprettet</th><th></th></tr>`;
     cases.forEach(c => {
       const pris = c.ejendomspris ? Number(c.ejendomspris).toLocaleString("da-DK") + " kr." : "-";
@@ -175,7 +175,7 @@ document.getElementById("sim-knap").addEventListener("click", async function () 
     }
   });
 
-  let html = "<table class='ejendoms-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
+  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
   resultater.forEach(r => {
     html += `<tr>
       <td>${r.aar}</td>

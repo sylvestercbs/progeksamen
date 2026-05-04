@@ -230,15 +230,15 @@ nav a:hover {
   padding: 8px 16px;
 }
 
-/* Ejendomme tabel */
-.ejendoms-tabel {
+/* Tabeller */
+.data-tabel {
   width: 100%;
   border-collapse: collapse;
   margin-top: 16px;
   font-size: 0.95rem;
 }
 
-.ejendoms-tabel th {
+.data-tabel th {
   background: #2d6a4f;
   color: #fff;
   padding: 10px 14px;
@@ -246,16 +246,16 @@ nav a:hover {
   font-weight: 600;
 }
 
-.ejendoms-tabel td {
+.data-tabel td {
   padding: 10px 14px;
   border-bottom: 1px solid #eee;
 }
 
-.ejendoms-tabel tr:hover td {
+.data-tabel tr:hover td {
   background: #f9f9f9;
 }
 
-.ejendoms-tabel .knap-celle {
+.data-tabel .knap-celle {
   display: flex;
   gap: 6px;
 }
@@ -345,8 +345,16 @@ nav a:hover {
   display: block;
 }
 
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
 textarea {
   width: 100%;
   height: 80px;
   resize: vertical;
 }
+

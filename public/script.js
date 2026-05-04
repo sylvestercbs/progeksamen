@@ -354,7 +354,7 @@ function visSimulering(resultater) {
   });
 
   // Tabel viser de samme tal som grafen men i læsbart format
-  let html = "<table border='1'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
+  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
   resultater.forEach(r => {
     html += `<tr>
       <td>${r.aar}</td>
