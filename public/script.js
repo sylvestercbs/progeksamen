@@ -231,10 +231,13 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   document.getElementById("case-besked").textContent = "Case oprettet med ID: " + caseData.case_id;
   document.getElementById("sim-sektion").style.display = "block";
 
-  // Udfylder simuleringsfelterne automatisk med lånedata fra formularen
-  document.getElementById("sim-laanebeloeb").value = laanebeloeb;
-  document.getElementById("sim-rentesats").value   = rentesats;
-  document.getElementById("sim-loebetid").value    = loebetid_aar;
+  // Udfylder simuleringsfelterne automatisk med data fra formularen
+  document.getElementById("sim-ejendomspris").value = ejendomspris;
+  document.getElementById("sim-laanebeloeb").value  = laanebeloeb;
+  document.getElementById("sim-rentesats").value    = rentesats;
+  document.getElementById("sim-loebetid").value     = loebetid_aar;
+  document.getElementById("sim-lejeindtaegt").value = udlejningsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
+  document.getElementById("sim-udgifter").value     = driftsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
 });
 
 function visKort() {
@@ -280,13 +283,7 @@ document.querySelectorAll(".tab-knap").forEach(knap => {
 });
 
 document.getElementById("sim-knap").addEventListener("click", async function () {
-  const pris         = parseFloat(document.getElementById("sim-laanebeloeb").value);
-  const laanebeloeb  = parseFloat(document.getElementById("sim-laanebeloeb").value);
-  const rentesats    = parseFloat(document.getElementById("sim-rentesats").value);
-  const loebetid_aar = parseInt(document.getElementById("sim-loebetid").value);
-  const lejeindtaegt = parseFloat(document.getElementById("sim-lejeindtaegt").value);
-  const udgifter     = parseFloat(document.getElementById("sim-udgifter").value);
-  const antalAar     = parseInt(document.getElementById("sim-antal-aar").value);
+  const antalAar = parseInt(document.getElementById("sim-antal-aar").value);
 
   // Henter case-id fra den sidst oprettede case (sat via case-besked-elementet)
   const caseBesked = document.getElementById("case-besked").textContent;
@@ -296,11 +293,11 @@ document.getElementById("sim-knap").addEventListener("click", async function () 
     return;
   }
 
-  // POST til /api/cases/:id/simulate — backend returnerer array af {aar, ejendomsvaerdi, cashflow}
+  // POST til /api/cases/:id/simulate — backend henter al data fra DB via case-id
   const res = await fetch(`/api/cases/${caseId}/simulate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pris, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter, antalAar })
+    body: JSON.stringify({ antalAar })
   });
   const resultater = await res.json();
 

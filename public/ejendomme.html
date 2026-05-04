@@ -64,11 +64,12 @@
   <div id="sim-sektion" style="display:none">
     <div class="card">
       <h3>Simulering: <span id="sim-casenavn"></span></h3>
-      <label>Lånebeløb (kr.)<br><input type="number" id="sim-laanebeloeb"></label><br>
-      <label>Rentesats (fx 0.0425)<br><input type="number" id="sim-rentesats" step="0.001"></label><br>
-      <label>Løbetid (år)<br><input type="number" id="sim-loebetid"></label><br>
-      <label>Årlig lejeindtægt (kr.)<br><input type="number" id="sim-lejeindtaegt" value="0"></label><br>
-      <label>Årlige udgifter (kr.)<br><input type="number" id="sim-udgifter" value="0"></label><br>
+      <label>Ejendomspris (kr.)<br><input type="number" id="sim-ejendomspris" readonly></label><br>
+      <label>Lånebeløb (kr.)<br><input type="number" id="sim-laanebeloeb" readonly></label><br>
+      <label>Rentesats (fx 0.0425)<br><input type="number" id="sim-rentesats" step="0.001" readonly></label><br>
+      <label>Løbetid (år)<br><input type="number" id="sim-loebetid" readonly></label><br>
+      <label>Årlig lejeindtægt (kr.)<br><input type="number" id="sim-lejeindtaegt" readonly></label><br>
+      <label>Årlige udgifter (kr.)<br><input type="number" id="sim-udgifter" readonly></label><br>
       <label>Antal år<br><input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
       <button id="sim-knap" class="primær-knap">Kør simulering</button>
     </div>

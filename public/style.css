@@ -358,3 +358,9 @@ textarea {
   resize: vertical;
 }
 
+input[readonly] {
+  background-color: #f0f0f0;
+  color: #666;
+  cursor: default;
+}
+

@@ -14,36 +14,43 @@ class InvestmentCalculator {
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   }
 
-  // Årligt cashflow er lejeindtægt minus udgifter minus årlig låneydelse
-  beregnAarligtCashflow(lejeindtaegt, udgifter) {
+  // Årligt cashflow er lejeindtægt minus udgifter minus årlig låneydelse minus eventuelle renoveringer
+  beregnAarligtCashflow(lejeindtaegt, udgifter, renoIAar = 0) {
     const aarligYdelse = this.beregnMaanedligYdelse() * 12;
-    return lejeindtaegt - udgifter - aarligYdelse;
+    return lejeindtaegt - udgifter - aarligYdelse - renoIAar;
   }
 
-  simuler(antalAar, lejeindtaegt, udgifter) {
-  const resultater = [];
-  // Restgæld starter som det fulde lånebeløb og nedbringes år for år
-  let restgaeld = this.laanebeloeb;
-  const maanedligYdelse = this.beregnMaanedligYdelse();
+  simuler(antalAar, lejeindtaegt, udgifter, renoveringer = []) {
+    const resultater = [];
+    // Restgæld starter som det fulde lånebeløb og nedbringes år for år
+    let restgaeld = this.laanebeloeb;
+    const maanedligYdelse = this.beregnMaanedligYdelse();
+    const aarligYdelse = maanedligYdelse * 12;
 
-  for (let aar = 0; aar <= antalAar; aar++) {
-    // Ejendomsværdi vokser med 2% om året (ekstern antagelse om prisudvikling)
-    const ejendomsvaerdi = this.pris * Math.pow(1.02, aar);
-    const cashflow = this.beregnAarligtCashflow(lejeindtaegt, udgifter);
+    for (let aar = 0; aar <= antalAar; aar++) {
+      // Ejendomsværdi vokser med 2% om året (ekstern antagelse om prisudvikling)
+      const ejendomsvaerdi = this.pris * Math.pow(1.02, aar);
 
-    // Af den samlede ydelse går renteandelen til banken, resten er afdrag
-    // Renteandelen falder over tid fordi restgælden falder
-    const aarligRente = restgaeld * this.rentesats;
-    const aarligAfdrag = (maanedligYdelse * 12) - aarligRente;
-    restgaeld = Math.max(0, restgaeld - aarligAfdrag);
+      if (aar > 0) {
+        // Af den samlede ydelse går renteandelen til banken, resten er afdrag
+        // Renteandelen falder over tid fordi restgælden falder
+        const aarligRente  = restgaeld * this.rentesats;
+        const aarligAfdrag = aarligYdelse - aarligRente;
+        restgaeld = Math.max(0, restgaeld - aarligAfdrag);
+      }
 
-    // Egenkapital er hvad der er tilbage hvis ejendommen sælges og gælden betales
-    const egenkapital = ejendomsvaerdi - restgaeld;
+      // Renoveringer trækkes fra cashflow i det år de er planlagt
+      const renoIAar = renoveringer
+        .filter(r => r.planlagt_aar === aar)
+        .reduce((sum, r) => sum + Number(r.beloeb), 0);
 
-    resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
+      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(lejeindtaegt, udgifter, renoIAar);
+      const egenkapital = ejendomsvaerdi - restgaeld;
+
+      resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
+    }
+    return resultater;
   }
-  return resultater;
-}
 }
 
 module.exports = InvestmentCalculator;

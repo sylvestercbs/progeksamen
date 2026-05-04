@@ -223,13 +223,32 @@ async function klargørSimulering(caseId, casenavn) {
   aktivCaseId = caseId;
   document.getElementById("sim-casenavn").textContent = casenavn;
 
-  const laanRes = await fetch(`/api/laan/${caseId}`);
-  const laan = await laanRes.json();
+  const [laanRes, caseRes, driftRes, udlejRes] = await Promise.all([
+    fetch(`/api/laan/${caseId}`),
+    fetch(`/api/cases/${caseId}`),
+    fetch(`/api/driftsomkostninger/${caseId}`),
+    fetch(`/api/udlejning/${caseId}`),
+  ]);
+
+  const laan    = await laanRes.json();
+  const invCase = await caseRes.json();
+  const drift   = await driftRes.json();
+  const udlejn  = await udlejRes.json();
+
   if (laan.length) {
     document.getElementById("sim-laanebeloeb").value = laan[0].laanebeloeb;
     document.getElementById("sim-rentesats").value   = laan[0].rentesats;
     document.getElementById("sim-loebetid").value    = laan[0].loebetid_aar;
   }
+
+  if (invCase) {
+    document.getElementById("sim-ejendomspris").value = invCase.ejendomspris;
+  }
+
+  const aarligUdlejn = udlejn.reduce((sum, r) => sum + Number(r.aarligt_beloeb), 0);
+  const aarligDrift  = drift.reduce((sum, r) => sum + Number(r.aarligt_beloeb), 0);
+  document.getElementById("sim-lejeindtaegt").value = aarligUdlejn;
+  document.getElementById("sim-udgifter").value     = aarligDrift;
 
   document.getElementById("sim-sektion").style.display = "block";
   document.getElementById("sim-resultat").style.display = "none";
@@ -237,17 +256,13 @@ async function klargørSimulering(caseId, casenavn) {
 }
 
 document.getElementById("sim-knap").addEventListener("click", async function () {
-  const laanebeloeb  = parseFloat(document.getElementById("sim-laanebeloeb").value);
-  const rentesats    = parseFloat(document.getElementById("sim-rentesats").value);
-  const loebetid_aar = parseInt(document.getElementById("sim-loebetid").value);
-  const lejeindtaegt = parseFloat(document.getElementById("sim-lejeindtaegt").value) || 0;
-  const udgifter     = parseFloat(document.getElementById("sim-udgifter").value) || 0;
-  const antalAar     = parseInt(document.getElementById("sim-antal-aar").value);
+  const antalAar = parseInt(document.getElementById("sim-antal-aar").value);
 
+  // POST til /api/cases/:id/simulate — backend henter al data fra DB via case-id
   const res = await fetch(`/api/cases/${aktivCaseId}/simulate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pris: laanebeloeb, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter, antalAar })
+    body: JSON.stringify({ antalAar })
   });
   const resultater = await res.json();
 
