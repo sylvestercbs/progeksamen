@@ -81,8 +81,8 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   document.getElementById("drift-total").style.display = "none";
   document.getElementById("udlejning-liste").innerHTML = "";
   document.getElementById("case-besked").textContent = "";
-  document.getElementById("simulering-formular").style.display = "none";
-  document.getElementById("simulering-resultat").style.display = "none";
+  document.getElementById("sim-sektion").style.display = "none";
+  document.getElementById("sim-resultat").style.display = "none";
   renoveringer.length = 0;
   driftsposter.length = 0;
   udlejningsposter.length = 0;
@@ -229,7 +229,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   }
 
   document.getElementById("case-besked").textContent = "Case oprettet med ID: " + caseData.case_id;
-  document.getElementById("simulering-formular").style.display = "block";
+  document.getElementById("sim-sektion").style.display = "block";
 
   // Udfylder simuleringsfelterne automatisk med lånedata fra formularen
   document.getElementById("sim-laanebeloeb").value = laanebeloeb;
@@ -279,10 +279,7 @@ document.querySelectorAll(".tab-knap").forEach(knap => {
   });
 });
 
-// Holder Chart.js-instansen så den kan ødelægges og genskabes ved ny simulering
-let simuleringsGraf = null;
-
-document.getElementById("simuler-knap").addEventListener("click", async function () {
+document.getElementById("sim-knap").addEventListener("click", async function () {
   const pris         = parseFloat(document.getElementById("sim-laanebeloeb").value);
   const laanebeloeb  = parseFloat(document.getElementById("sim-laanebeloeb").value);
   const rentesats    = parseFloat(document.getElementById("sim-rentesats").value);
@@ -310,77 +307,6 @@ document.getElementById("simuler-knap").addEventListener("click", async function
   visSimulering(resultater);
 });
 
-function visSimulering(resultater) {
-  document.getElementById("simulering-resultat").style.display = "block";
-
-  const aar       = resultater.map(r => `År ${r.aar}`);
-  const vaerdier  = resultater.map(r => Math.round(r.ejendomsvaerdi));
-  const cashflows = resultater.map(r => Math.round(r.cashflow));
-  const gaeld     = resultater.map(r => Math.round(r.restgaeld));
-  const egenkapital = resultater.map(r => Math.round(r.egenkapital));
-
-  if (simuleringsGraf) simuleringsGraf.destroy();
-
-  const ctx = document.getElementById("simulering-graf").getContext("2d");
-
-  simuleringsGraf = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: aar,
-      datasets: [
-        {
-          label: "Ejendomsværdi (kr.)",
-          data: vaerdier,
-          borderColor: "steelblue",
-          tension: 0.1,
-          yAxisID: "y"
-        },
-        {
-          label: "Gæld (kr.)",
-          data: gaeld,
-          borderColor: "red",
-          tension: 0.1,
-          yAxisID: "y"
-        },
-        {
-          label: "Egenkapital (kr.)",
-          data: egenkapital,
-          borderColor: "green",
-          tension: 0.1,
-          yAxisID: "y"
-        },
-        {
-          label: "Årligt cashflow (kr.)",
-          data: cashflows,
-          borderColor: "orange",
-          tension: 0.1,
-          // Separat akse fordi cashflow er i en helt anden størrelsesorden end de andre
-          yAxisID: "y1"
-        }
-      ]
-    },
-    options: {
-      scales: {
-        y:  { position: "left",  title: { display: true, text: "Kr." } },
-        y1: { position: "right", title: { display: true, text: "Cashflow (kr.)" }, grid: { drawOnChartArea: false } }
-      }
-    }
-  });
-
-  // Tabel viser de samme tal som grafen men i læsbart format
-  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
-  resultater.forEach(r => {
-    html += `<tr>
-      <td>${r.aar}</td>
-      <td>${Math.round(r.ejendomsvaerdi).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.restgaeld).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.egenkapital).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.cashflow).toLocaleString("da-DK")} kr.</td>
-    </tr>`;
-  });
-  html += "</table>";
-  document.getElementById("simulering-tabel").innerHTML = html;
-}
 
 // Hvis siden åbnes med ?ejendom_id=X (omdirigeret fra /ejendomme), hentes ejendommen
 // og case-formularen vises direkte uden at brugeren skal søge på ny

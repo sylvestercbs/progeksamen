@@ -166,7 +166,7 @@
       <p id="case-besked"></p>
     </div>
 
-    <div id="simulering-formular" style="display:none">
+    <div id="sim-sektion" style="display:none">
       <h3>Simuler investering</h3>
       <label>Lånebeløb (kr.):        <input type="number" id="sim-laanebeloeb" value="2000000"></label><br>
       <label>Rentesats (fx 0.0425):  <input type="number" id="sim-rentesats" step="0.001" value="0.0425"></label><br>
@@ -174,13 +174,13 @@
       <label>Årlig lejeindtægt (kr.):<input type="number" id="sim-lejeindtaegt" value="120000"></label><br>
       <label>Årlige udgifter (kr.):  <input type="number" id="sim-udgifter" value="30000"></label><br>
       <label>Simuler antal år:       <input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
-      <button id="simuler-knap">Kør simulering</button>
+      <button id="sim-knap">Kør simulering</button>
     </div>
 
-    <div id="simulering-resultat" style="display:none">
+    <div id="sim-resultat" style="display:none">
       <h3>Simuleringsresultat</h3>
-      <canvas id="simulering-graf"></canvas>
-      <div id="simulering-tabel"></div>
+      <canvas id="sim-graf"></canvas>
+      <div id="sim-tabel"></div>
     </div>
 
     <h3>Kort</h3>
@@ -194,6 +194,7 @@
   <script src="/dawa/dawa-autocomplete2.min.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/simulering.js"></script>
   <script src="/script.js"></script>
 
 </body>

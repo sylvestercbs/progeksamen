@@ -85,6 +85,7 @@ document.getElementById("annuller-rediger-knap").addEventListener("click", funct
 
 async function visCases(ejendomId, adresse) {
   aktivEjendomId = ejendomId;
+
   const res = await fetch(`/api/cases?ejendom_id=${ejendomId}`);
   const cases = await res.json();
   const sektion = document.getElementById("cases-sektion");
@@ -95,15 +96,18 @@ async function visCases(ejendomId, adresse) {
     document.getElementById("cases-liste").innerHTML = "<p>Ingen cases oprettet endnu.</p>";
   } else {
     let html = `<table class="data-tabel">
-      <tr><th>Navn</th><th>Ejendomspris</th><th>Oprettet</th><th></th></tr>`;
+      <tr><th>Vælg</th><th>Navn</th><th>Ejendomspris</th><th>Oprettet</th><th></th></tr>`;
     cases.forEach(c => {
       const pris = c.ejendomspris ? Number(c.ejendomspris).toLocaleString("da-DK") + " kr." : "-";
       const oprettet = new Date(c.oprettet).toLocaleDateString("da-DK");
+      const sikkertNavn = c.navn.replace(/'/g, "\\'");
+      const erValgt = valgteCases.some(vc => vc.id === c.case_id) ? "checked" : "";
       html += `<tr>
+        <td><input type="checkbox" ${erValgt} onchange="toggleCaseValg(${c.case_id}, '${sikkertNavn}')"></td>
         <td>${c.navn}</td>
         <td>${pris}</td>
         <td>${oprettet}</td>
-        <td><button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${c.navn}')">Simuler</button></td>
+        <td><button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${sikkertNavn}')">Simuler</button></td>
       </tr>`;
     });
     html += "</table>";
@@ -116,7 +120,100 @@ async function visCases(ejendomId, adresse) {
 
 let aktivEjendomId = null;
 let aktivCaseId = null;
-let simuleringsGraf = null;
+
+// Holder styr på hvilke cases der er valgt til sammenligning
+const valgteCases = [];
+
+function toggleCaseValg(caseId, casenavn) {
+  const index = valgteCases.findIndex(c => c.id === caseId);
+  if (index === -1) {
+    valgteCases.push({ id: caseId, navn: casenavn });
+  } else {
+    valgteCases.splice(index, 1);
+  }
+  const knap = document.getElementById("sammenlign-knap");
+  if (valgteCases.length >= 2) {
+    knap.style.display = "inline-block";
+    knap.textContent = `Sammenlign (${valgteCases.length})`;
+  } else {
+    knap.style.display = "none";
+  }
+}
+
+function beregnMaanedligYdelse(beloeb, rentesats, loebetid_aar) {
+  if (beloeb == null || rentesats == null || loebetid_aar == null) return null;
+  const r = rentesats / 12;
+  const n = loebetid_aar * 12;
+  if (r === 0) return beloeb / n;
+  return beloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+async function sammenlignCases() {
+  const data = [];
+  for (const c of valgteCases) {
+    const laanRes    = await fetch(`/api/laan/${c.id}`);
+    const caseResRes = await fetch(`/api/cases/${c.id}`);
+    const laan       = await laanRes.json();
+    const caseRes    = await caseResRes.json();
+    const l = laan[0] || {};
+    data.push({
+      case:    c,
+      laan:    l,
+      caseRes: caseRes,
+      ydelse:  beregnMaanedligYdelse(l.laanebeloeb, l.rentesats, l.loebetid_aar),
+    });
+  }
+
+  const rows = [
+    ["Casenavn",        ...data.map(d => d.case.navn)],
+    ["Ejendomspris",    ...data.map(d => fmt(d.caseRes.ejendomspris))],
+    ["Lånebeløb",       ...data.map(d => fmt(d.laan.laanebeloeb))],
+    ["Rentesats",       ...data.map(d => d.laan.rentesats != null ? (d.laan.rentesats * 100).toFixed(2) + " %" : "-")],
+    ["Løbetid",         ...data.map(d => d.laan.loebetid_aar != null ? d.laan.loebetid_aar + " år" : "-")],
+    ["Månedlig ydelse", ...data.map(d => d.ydelse != null ? fmt(Math.round(d.ydelse)) : "-")],
+  ];
+
+  const tabel = document.createElement("table");
+  tabel.className = "data-tabel";
+
+  const headerRaekke = document.createElement("tr");
+  const feltHeader = document.createElement("th");
+  feltHeader.textContent = "Felt";
+  headerRaekke.appendChild(feltHeader);
+  data.forEach(function(d) {
+    const th = document.createElement("th");
+    th.textContent = d.case.navn;
+    headerRaekke.appendChild(th);
+  });
+  tabel.appendChild(headerRaekke);
+
+  rows.forEach(function(row) {
+    const tr = document.createElement("tr");
+    const tdFelt = document.createElement("td");
+    const strong = document.createElement("strong");
+    strong.textContent = row[0];
+    tdFelt.appendChild(strong);
+    tr.appendChild(tdFelt);
+    for (let i = 1; i < row.length; i++) {
+      const td = document.createElement("td");
+      td.textContent = row[i] || "-";
+      tr.appendChild(td);
+    }
+    tabel.appendChild(tr);
+  });
+
+  const indhold = document.getElementById("sammenlign-indhold");
+  indhold.innerHTML = "";
+  indhold.appendChild(tabel);
+
+  const sek = document.getElementById("sammenlign-sektion");
+  sek.style.display = "block";
+  sek.scrollIntoView();
+}
+
+function fmt(tal) {
+  return tal != null ? Number(tal).toLocaleString("da-DK") + " kr." : "-";
+}
 
 function gaaTilNyCase() {
   window.location.href = "/?ejendom_id=" + aktivEjendomId;
@@ -154,41 +251,7 @@ document.getElementById("sim-knap").addEventListener("click", async function () 
   });
   const resultater = await res.json();
 
-  document.getElementById("sim-resultat").style.display = "block";
-
-  if (simuleringsGraf) simuleringsGraf.destroy();
-  simuleringsGraf = new Chart(document.getElementById("sim-graf").getContext("2d"), {
-    type: "line",
-    data: {
-      labels: resultater.map(r => `År ${r.aar}`),
-      datasets: [
-        { label: "Ejendomsværdi (kr.)", data: resultater.map(r => Math.round(r.ejendomsvaerdi)), borderColor: "steelblue", tension: 0.1, yAxisID: "y" },
-        { label: "Gæld (kr.)",          data: resultater.map(r => Math.round(r.restgaeld)),       borderColor: "red",       tension: 0.1, yAxisID: "y" },
-        { label: "Egenkapital (kr.)",   data: resultater.map(r => Math.round(r.egenkapital)),     borderColor: "green",     tension: 0.1, yAxisID: "y" },
-        { label: "Cashflow (kr.)",      data: resultater.map(r => Math.round(r.cashflow)),        borderColor: "orange",    tension: 0.1, yAxisID: "y1" }
-      ]
-    },
-    options: {
-      scales: {
-        y:  { position: "left",  title: { display: true, text: "Kr." } },
-        y1: { position: "right", title: { display: true, text: "Cashflow (kr.)" }, grid: { drawOnChartArea: false } }
-      }
-    }
-  });
-
-  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
-  resultater.forEach(r => {
-    html += `<tr>
-      <td>${r.aar}</td>
-      <td>${Math.round(r.ejendomsvaerdi).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.restgaeld).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.egenkapital).toLocaleString("da-DK")} kr.</td>
-      <td>${Math.round(r.cashflow).toLocaleString("da-DK")} kr.</td>
-    </tr>`;
-  });
-  html += "</table>";
-  document.getElementById("sim-tabel").innerHTML = html;
-  document.getElementById("sim-resultat").scrollIntoView();
+  visSimulering(resultater);
 });
 
 loadEjendomme();
