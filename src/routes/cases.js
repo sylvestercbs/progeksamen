@@ -44,18 +44,29 @@ router.post("/", async (req, res) => {
     if (!navn) return res.status(400).json({ error: 'Navn er påkrævet' });
     if (!ejendom_id) return res.status(400).json({ error: 'ejendom_id er påkrævet' });
 
-    // Opret Ejendomsprofil først — Investeringscase kræver en profil_id (FK til Ejendomsprofil)
-    const profilResult = await db.query(
-      `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
-       OUTPUT INSERTED.profil_id
-       VALUES (@ejendom_id, @navn, @beskrivelse)`,
-      [
-        { name: 'ejendom_id',  value: ejendom_id },
-        { name: 'navn',        value: navn },
-        { name: 'beskrivelse', value: beskrivelse },
-      ]
+    // Genbrug eksisterende profil hvis den findes — ellers opret én pr. ejendom
+    const eksisterendeProfil = await db.query(
+      `SELECT TOP 1 profil_id FROM EjendomInvestApp.Ejendomsprofil
+       WHERE ejendom_id = @ejendom_id ORDER BY oprettet DESC`,
+      [{ name: 'ejendom_id', value: ejendom_id }]
     );
-    const profil_id = profilResult.recordset[0].profil_id;
+
+    let profil_id;
+    if (eksisterendeProfil.recordset.length > 0) {
+      profil_id = eksisterendeProfil.recordset[0].profil_id;
+    } else {
+      const profilResult = await db.query(
+        `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
+         OUTPUT INSERTED.profil_id
+         VALUES (@ejendom_id, @navn, @beskrivelse)`,
+        [
+          { name: 'ejendom_id',  value: ejendom_id },
+          { name: 'navn',        value: navn },
+          { name: 'beskrivelse', value: beskrivelse },
+        ]
+      );
+      profil_id = profilResult.recordset[0].profil_id;
+    }
 
     // Opret Investeringscase med reference til den nye profil
     const caseResult = await db.query(
