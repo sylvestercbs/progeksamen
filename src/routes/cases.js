@@ -93,8 +93,8 @@ router.put("/:id", async (req, res) => {
     const { navn, beskrivelse, ejendomspris, koebs_omkostninger } = req.body;
     const result = await db.query(
       `UPDATE EjendomInvestApp.Investeringscase
-       SET navn = @navn, beskrivelse = @beskrivelse,
-           ejendomspris = @ejendomspris, koebs_omkostninger = @koebs_omkostninger
+       SET navn = COALESCE(@navn, navn), beskrivelse = COALESCE(@beskrivelse, beskrivelse),
+           ejendomspris = @ejendomspris, koebs_omkostninger = COALESCE(@koebs_omkostninger, koebs_omkostninger)
        OUTPUT INSERTED.*
        WHERE case_id = @id`,
       [
