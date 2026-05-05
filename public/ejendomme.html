@@ -72,6 +72,8 @@
       <label>Årlige udgifter (kr.)<br><input type="number" id="sim-udgifter" readonly></label><br>
       <label>Antal år<br><input type="number" id="sim-antal-aar" value="30" min="1" max="50"></label><br>
       <button id="sim-knap" class="primær-knap">Kør simulering</button>
+      <button id="rediger-sim-knap" class="sekundær-knap" onclick="toggleRedigerSim()">Rediger</button>
+      <button id="gem-sim-knap" class="primær-knap" style="display:none" onclick="gemCaseRettelser()">Gem</button>
     </div>
   </div>
 

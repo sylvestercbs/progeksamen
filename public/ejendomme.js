@@ -107,7 +107,10 @@ async function visCases(ejendomId, adresse) {
         <td>${c.navn}</td>
         <td>${pris}</td>
         <td>${oprettet}</td>
-        <td><button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${sikkertNavn}')">Simuler</button></td>
+        <td>
+          <button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${sikkertNavn}')">Simuler</button>
+          <button class="tabel-knap" onclick="duplikerCase(${c.case_id}, '${sikkertNavn}')">Dupliker</button>
+        </td>
       </tr>`;
     });
     html += "</table>";
@@ -219,6 +222,55 @@ function gaaTilNyCase() {
   window.location.href = "/?ejendom_id=" + aktivEjendomId;
 }
 
+let aktivLaanId = null;
+
+async function duplikerCase(caseId, casenavn) {
+  if (!confirm(`Dupliker "${casenavn}"?`)) return;
+  const res = await fetch(`/api/cases/${caseId}/duplicate`, { method: "POST" });
+  if (!res.ok) { alert("Duplikering fejlede"); return; }
+  const { case_id: nyCaseId } = await res.json();
+  await visCases(aktivEjendomId, document.getElementById("cases-overskrift").textContent.replace("Cases for ", ""));
+  klargørSimulering(nyCaseId, casenavn + " (kopi)");
+}
+
+function toggleRedigerSim() {
+  const felter = ["sim-ejendomspris", "sim-laanebeloeb", "sim-rentesats", "sim-loebetid"];
+  const redigerer = document.getElementById("rediger-sim-knap").textContent === "Rediger";
+  felter.forEach(id => document.getElementById(id).toggleAttribute("readonly"));
+  document.getElementById("rediger-sim-knap").textContent = redigerer ? "Annuller" : "Rediger";
+  document.getElementById("gem-sim-knap").style.display   = redigerer ? "inline" : "none";
+}
+
+async function gemCaseRettelser() {
+  try {
+    const caseRes = await fetch(`/api/cases/${aktivCaseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ejendomspris: parseFloat(document.getElementById("sim-ejendomspris").value),
+      }),
+    });
+    if (!caseRes.ok) throw new Error("Kunne ikke gemme casedata");
+
+    if (aktivLaanId) {
+      const laanRes = await fetch(`/api/laan/${aktivLaanId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          laanebeloeb:  parseFloat(document.getElementById("sim-laanebeloeb").value),
+          rentesats:    parseFloat(document.getElementById("sim-rentesats").value),
+          loebetid_aar: parseInt(document.getElementById("sim-loebetid").value),
+        }),
+      });
+      if (!laanRes.ok) throw new Error("Kunne ikke gemme lånedata");
+    }
+
+    toggleRedigerSim();
+  } catch (err) {
+    alert("Gem fejlede: " + err.message);
+  }
+}
+
 async function klargørSimulering(caseId, casenavn) {
   aktivCaseId = caseId;
   document.getElementById("sim-casenavn").textContent = casenavn;
@@ -236,6 +288,7 @@ async function klargørSimulering(caseId, casenavn) {
   const udlejn  = await udlejRes.json();
 
   if (laan.length) {
+    aktivLaanId = laan[0].laan_id;
     document.getElementById("sim-laanebeloeb").value = laan[0].laanebeloeb;
     document.getElementById("sim-rentesats").value   = laan[0].rentesats;
     document.getElementById("sim-loebetid").value    = laan[0].loebetid_aar;

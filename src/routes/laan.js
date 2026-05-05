@@ -44,4 +44,34 @@ router.get("/:case_id", async (req, res) => {
   }
 });
 
+// Opdaterer lånevilkår for et specifikt lån
+router.put("/:id", async (req, res) => {
+  try {
+    const { laanebeloeb, rentesats, loebetid_aar, afdragsfri_periode_aar, laantype } = req.body;
+    if (!laanebeloeb || !rentesats || !loebetid_aar) {
+      return res.status(400).json({ error: "Mangler påkrævede lånefelter" });
+    }
+    const result = await db.query(
+      `UPDATE EjendomInvestApp.Laan
+       SET laanebeloeb = @laanebeloeb, rentesats = @rentesats,
+           loebetid_aar = @loebetid_aar, afdragsfri_periode_aar = @afdragsfri_periode_aar,
+           laantype = @laantype
+       OUTPUT INSERTED.*
+       WHERE laan_id = @id`,
+      [
+        { name: "laanebeloeb",            value: laanebeloeb },
+        { name: "rentesats",              value: rentesats },
+        { name: "loebetid_aar",           value: loebetid_aar },
+        { name: "afdragsfri_periode_aar", value: afdragsfri_periode_aar || 0 },
+        { name: "laantype",               value: laantype || "Realkredit" },
+        { name: "id",                     value: req.params.id },
+      ]
+    );
+    if (!result.recordset.length) return res.status(404).json({ error: "Lån ikke fundet" });
+    res.json(result.recordset[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
