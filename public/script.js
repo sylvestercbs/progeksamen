@@ -86,6 +86,8 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
   renoveringer.length = 0;
   driftsposter.length = 0;
   udlejningsposter.length = 0;
+  laaner.length = 0;
+  document.getElementById("laan-liste").innerHTML = "";
 
   // Sæt første tab aktiv
   document.querySelectorAll(".tab-knap").forEach(k => k.classList.remove("aktiv"));
@@ -121,6 +123,7 @@ document.getElementById("bbr-knap").addEventListener("click", async function() {
 const renoveringer = [];
 const driftsposter = [];
 const udlejningsposter = [];
+const laaner = [];
 
 
 document.getElementById("renovering-tilfoej").addEventListener("click", function () {
@@ -174,22 +177,34 @@ document.getElementById("udlejning-tilfoej").addEventListener("click", function 
   document.getElementById("udlejning-beloeb").value = "";
 });
 
+document.getElementById("laan-tilfoej").addEventListener("click", function () {
+  const beloeb      = parseFloat(document.getElementById("laan-beloeb").value);
+  const rentesats   = parseFloat(document.getElementById("laan-rente").value);
+  const loebetidAar = parseInt(document.getElementById("laan-loebetid").value);
+  const afdragsfri  = parseInt(document.getElementById("laan-afdragsfri").value) || 0;
+  const laantype    = document.getElementById("laan-type").value;
+  if (!beloeb || !rentesats || !loebetidAar) { alert("Udfyld lånebeløb, rentesats og løbetid"); return; }
+  laaner.push({ laanebeloeb: beloeb, rentesats, loebetid_aar: loebetidAar, afdragsfri_periode_aar: afdragsfri, laantype });
+  const li = document.createElement("li");
+  li.textContent = `${laantype}: ${beloeb.toLocaleString("da-DK")} kr., ${rentesats * 100}% i ${loebetidAar} år`;
+  document.getElementById("laan-liste").appendChild(li);
+  document.getElementById("laan-beloeb").value = "";
+  document.getElementById("laan-rente").value = "";
+  document.getElementById("laan-loebetid").value = "";
+  document.getElementById("laan-afdragsfri").value = "0";
+});
+
 // Opretter casen og alle tilknyttede poster når brugeren klikker Opret
 document.getElementById("opret-case-knap").addEventListener("click", async function () {
-  const navn               = document.getElementById("case-navn").value.trim();
-  const beskrivelse        = document.getElementById("case-beskrivelse").value.trim();
-  const ejendomspris       = parseFloat(document.getElementById("case-ejendomspris").value);
+  const navn              = document.getElementById("case-navn").value.trim();
+  const beskrivelse       = document.getElementById("case-beskrivelse").value.trim();
+  const ejendomspris      = parseFloat(document.getElementById("case-ejendomspris").value);
   const koebsOmkostninger = parseFloat(document.getElementById("case-koebs-omkostninger").value) || 0;
-  const laanebeloeb       = parseFloat(document.getElementById("laan-beloeb").value);
-  const rentesats         = parseFloat(document.getElementById("laan-rente").value);
-  const loebetidAar       = parseInt(document.getElementById("laan-loebetid").value);
-  const afdragsfri         = parseInt(document.getElementById("laan-afdragsfri").value) || 0;
-  const laantype           = document.getElementById("laan-type").value;
 
   document.getElementById("case-besked").style.color = "";
 
-  if (!navn || !ejendomspris || !laanebeloeb || !rentesats || !loebetidAar) {
-    alert("Udfyld casenavn, ejendomspris og låneoplysninger");
+  if (!navn || !ejendomspris || laaner.length === 0) {
+    alert("Udfyld casenavn, ejendomspris og tilføj mindst ét lån");
     return;
   }
 
@@ -209,11 +224,13 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
 
   const caseData = await caseRes.json();
 
-  await fetch("/api/laan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ case_id: caseData.case_id, laantype, laanebeloeb, rentesats, loebetid_aar: loebetidAar, afdragsfri_periode_aar: afdragsfri })
-  });
+  for (const laan of laaner) {
+    await fetch("/api/laan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: caseData.case_id, ...laan })
+    });
+  }
 
   for (const post of renoveringer) {
     await fetch("/api/renoveringer", {
@@ -244,9 +261,9 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
 
   // Udfylder simuleringsfelterne automatisk med data fra formularen
   document.getElementById("sim-ejendomspris").value = ejendomspris;
-  document.getElementById("sim-laanebeloeb").value  = laanebeloeb;
-  document.getElementById("sim-rentesats").value    = rentesats;
-  document.getElementById("sim-loebetid").value     = loebetidAar;
+  document.getElementById("sim-laanebeloeb").value  = laaner[0].laanebeloeb;
+  document.getElementById("sim-rentesats").value    = laaner[0].rentesats;
+  document.getElementById("sim-loebetid").value     = laaner[0].loebetid_aar;
   document.getElementById("sim-lejeindtaegt").value = udlejningsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
   document.getElementById("sim-udgifter").value     = driftsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
 });
