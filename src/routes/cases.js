@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/database");
-const InvestmentCalculator = require("../models/investmentCalculator");
+const { InvestmentCalculator, Renovering } = require("../models/investmentCalculator");
 
 // Henter cases — filtrerer på ejendom_id hvis query param er angivet
 router.get("/", async (req, res) => {
@@ -241,9 +241,10 @@ router.post("/:id/simulate", async (req, res) => {
 
     const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar, aarligUdlejn, aarligDrift);
 
-    // Udlejning er positiv (indtægt), drift er negativ (udgift)
-    // renoveringer fratrækkes i simuler() det år de er planlagt
-    res.json(calculator.simuler(antalAar, renoveringer));
+    // Renoveringer fra DB konverteres til Renovering-objekter og tilføjes calculatoren
+    renoveringer.forEach(r => calculator.tilfoejRenovering(new Renovering(r.planlagt_aar, Number(r.beloeb))));
+
+    res.json(calculator.simuler(antalAar));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
