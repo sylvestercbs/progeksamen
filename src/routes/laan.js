@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/database");
+const { InvestmentCalculator } = require("../models/investmentCalculator");
 
 // Opretter et lån tilknyttet en specifik case
 router.post("/", async (req, res) => {
@@ -31,14 +32,19 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Henter alle lån for en case
+// Henter alle lån for en case — tilføjer beregnet månedlig ydelse fra InvestmentCalculator
+// så frontend ikke duplikerer annuitetsformlen
 router.get("/:case_id", async (req, res) => {
   try {
     const result = await db.query(
       "SELECT * FROM EjendomInvestApp.Laan WHERE case_id = @case_id",
       [{ name: "case_id", value: req.params.case_id }]
     );
-    res.json(result.recordset);
+    const laanMedYdelse = result.recordset.map(l => {
+      const calc = new InvestmentCalculator(0, l.laanebeloeb, l.rentesats, l.loebetid_aar, 0, 0);
+      return { ...l, maanedlig_ydelse: calc.beregnMaanedligYdelse() };
+    });
+    res.json(laanMedYdelse);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

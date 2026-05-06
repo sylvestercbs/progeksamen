@@ -154,14 +154,6 @@ function toggleCaseValg(caseId, casenavn) {
   }
 }
 
-function beregnMaanedligYdelse(beloeb, rentesats, loebetid_aar) {
-  if (beloeb == null || rentesats == null || loebetid_aar == null) return null;
-  const r = rentesats / 12;
-  const n = loebetid_aar * 12;
-  if (r === 0) return beloeb / n;
-  return beloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-}
-
 async function sammenlignCases() {
   const data = [];
   for (const c of valgteCases) {
@@ -170,11 +162,12 @@ async function sammenlignCases() {
     const laan       = await laanRes.json();
     const caseRes    = await caseResRes.json();
     const l = laan[0] || {};
+    // maanedlig_ydelse beregnes af backend via InvestmentCalculator — undgår duplikering af annuitetsformlen
     data.push({
       case:    c,
       laan:    l,
       caseRes: caseRes,
-      ydelse:  beregnMaanedligYdelse(l.laanebeloeb, l.rentesats, l.loebetid_aar),
+      ydelse:  l.maanedlig_ydelse != null ? l.maanedlig_ydelse : null,
     });
   }
 
