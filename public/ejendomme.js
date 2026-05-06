@@ -110,6 +110,7 @@ async function visCases(ejendomId, adresse) {
         <td>
           <button class="tabel-knap" onclick="klargørSimulering(${c.case_id}, '${sikkertNavn}')">Simuler</button>
           <button class="tabel-knap" onclick="duplikerCase(${c.case_id}, '${sikkertNavn}')">Dupliker</button>
+          <button class="tabel-knap" onclick="redigerCase(${c.case_id})">Rediger</button>
         </td>
       </tr>`;
     });
@@ -320,6 +321,200 @@ document.getElementById("sim-knap").addEventListener("click", async function () 
   const resultater = await res.json();
 
   visSimulering(resultater);
+});
+
+// State til redigering af eksisterende case
+const rcRenoveringer     = [];
+const rcDriftsposter     = [];
+const rcUdlejningsposter = [];
+const slettedeRenoveringer = [];
+const slettedeOmkostninger = [];
+const slettedeUdlejninger  = [];
+
+// Tab-skift scoped til #rediger-case-formular
+document.querySelectorAll(".rc-tab-knap").forEach(knap => {
+  knap.addEventListener("click", function () {
+    document.querySelectorAll(".rc-tab-knap").forEach(k => k.classList.remove("aktiv"));
+    document.querySelectorAll(".rc-tab-indhold").forEach(t => t.classList.remove("aktiv"));
+    this.classList.add("aktiv");
+    document.getElementById(this.dataset.tab).classList.add("aktiv");
+  });
+});
+
+async function redigerCase(caseId) {
+  try {
+    rcRenoveringer.length      = 0;
+    rcDriftsposter.length      = 0;
+    rcUdlejningsposter.length  = 0;
+    slettedeRenoveringer.length = 0;
+    slettedeOmkostninger.length = 0;
+    slettedeUdlejninger.length  = 0;
+
+    const [caseData, laanRes, renoRes, driftRes, udlejRes] = await Promise.all([
+      fetch(`/api/cases/${caseId}`).then(r => r.json()),
+      fetch(`/api/laan/${caseId}`).then(r => r.json()),
+      fetch(`/api/renoveringer/${caseId}`).then(r => r.json()),
+      fetch(`/api/driftsomkostninger/${caseId}`).then(r => r.json()),
+      fetch(`/api/udlejning/${caseId}`).then(r => r.json()),
+    ]);
+
+    aktivCaseId = caseId;
+    const laan = laanRes[0] || {};
+
+    document.getElementById("rc-case-id").value            = caseId;
+    document.getElementById("rc-laan-id").value             = laan.laan_id || "";
+    document.getElementById("rc-navn").value                = caseData.navn || "";
+    document.getElementById("rc-beskrivelse").value         = caseData.beskrivelse || "";
+    document.getElementById("rc-ejendomspris").value        = caseData.ejendomspris || "";
+    document.getElementById("rc-koebs-omkostninger").value  = caseData.koebs_omkostninger || "";
+    document.getElementById("rc-laan-beloeb").value         = laan.laanebeloeb || "";
+    document.getElementById("rc-laan-rente").value          = laan.rentesats || "";
+    document.getElementById("rc-laan-loebetid").value       = laan.loebetid_aar || "";
+    document.getElementById("rc-laan-afdragsfri").value     = laan.afdragsfri_periode_aar || 0;
+    document.getElementById("rc-laan-type").value           = laan.laantype || "Realkredit";
+
+    function bygListe(listeId, poster, labelFn, idKey, sletArr) {
+      const ul = document.getElementById(listeId);
+      ul.innerHTML = "";
+      poster.forEach(post => {
+        const li = document.createElement("li");
+        li.textContent = labelFn(post) + " ";
+        const sletKnap = document.createElement("button");
+        sletKnap.textContent = "Slet";
+        sletKnap.className = "tabel-knap slet";
+        sletKnap.onclick = () => { sletArr.push(post[idKey]); li.remove(); };
+        li.appendChild(sletKnap);
+        ul.appendChild(li);
+      });
+    }
+
+    bygListe("rc-renovering-liste", renoRes,
+      r => `${r.beskrivelse}: ${Number(r.beloeb).toLocaleString("da-DK")} kr. (år ${r.planlagt_aar})`,
+      "renovering_id", slettedeRenoveringer
+    );
+    bygListe("rc-drift-liste", driftRes,
+      d => `${d.beskrivelse}: ${Number(d.beloeb).toLocaleString("da-DK")} kr. (${d.er_maanedlig ? "månedlig" : "årlig"})`,
+      "omkostning_id", slettedeOmkostninger
+    );
+    bygListe("rc-udlejning-liste", udlejRes,
+      u => `${u.posttype}: ${Number(u.beloeb).toLocaleString("da-DK")} kr. (${u.er_maanedlig ? "månedlig" : "årlig"})`,
+      "udlejning_id", slettedeUdlejninger
+    );
+
+    ["rc-renovering-beskrivelse","rc-renovering-beloeb","rc-renovering-aar",
+     "rc-drift-beskrivelse","rc-drift-beloeb","rc-udlejning-beloeb"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+
+    document.querySelectorAll(".rc-tab-knap").forEach(k => k.classList.remove("aktiv"));
+    document.querySelectorAll(".rc-tab-indhold").forEach(t => t.classList.remove("aktiv"));
+    document.querySelector(".rc-tab-knap[data-tab='rc-tab-koeb']").classList.add("aktiv");
+    document.getElementById("rc-tab-koeb").classList.add("aktiv");
+
+    const formular = document.getElementById("rediger-case-formular");
+    formular.style.display = "block";
+    formular.scrollIntoView();
+  } catch (err) {
+    alert("Kunne ikke hente casedata: " + err.message);
+  }
+}
+
+document.getElementById("rc-renovering-tilfoej").addEventListener("click", function () {
+  const beskrivelse = document.getElementById("rc-renovering-beskrivelse").value.trim();
+  const beloeb      = document.getElementById("rc-renovering-beloeb").value;
+  const aar         = document.getElementById("rc-renovering-aar").value;
+  if (!beskrivelse || !beloeb || !aar) { alert("Udfyld alle renoveringsfelter"); return; }
+  rcRenoveringer.push({ beskrivelse, beloeb: parseFloat(beloeb), planlagt_aar: parseInt(aar) });
+  const li = document.createElement("li");
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (år ${aar}) (ny)`;
+  document.getElementById("rc-renovering-liste").appendChild(li);
+  document.getElementById("rc-renovering-beskrivelse").value = "";
+  document.getElementById("rc-renovering-beloeb").value = "";
+  document.getElementById("rc-renovering-aar").value = "";
+});
+
+document.getElementById("rc-drift-tilfoej").addEventListener("click", function () {
+  const beskrivelse  = document.getElementById("rc-drift-beskrivelse").value.trim();
+  const beloeb       = document.getElementById("rc-drift-beloeb").value;
+  const er_maanedlig = document.getElementById("rc-drift-frekvens").value;
+  if (!beskrivelse || !beloeb) { alert("Udfyld beskrivelse og beløb"); return; }
+  rcDriftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  const li = document.createElement("li");
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
+  document.getElementById("rc-drift-liste").appendChild(li);
+  document.getElementById("rc-drift-beskrivelse").value = "";
+  document.getElementById("rc-drift-beloeb").value = "";
+});
+
+document.getElementById("rc-udlejning-tilfoej").addEventListener("click", function () {
+  const posttype     = document.getElementById("rc-udlejning-type").value;
+  const beloeb       = document.getElementById("rc-udlejning-beloeb").value;
+  const er_maanedlig = document.getElementById("rc-udlejning-frekvens").value;
+  if (!beloeb) { alert("Udfyld beløb"); return; }
+  rcUdlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  const li = document.createElement("li");
+  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
+  document.getElementById("rc-udlejning-liste").appendChild(li);
+  document.getElementById("rc-udlejning-beloeb").value = "";
+});
+
+document.getElementById("rc-annuller-knap").addEventListener("click", function () {
+  document.getElementById("rediger-case-formular").style.display = "none";
+});
+
+document.getElementById("rc-gem-knap").addEventListener("click", async function () {
+  const caseId = document.getElementById("rc-case-id").value;
+  const laanId = document.getElementById("rc-laan-id").value;
+  try {
+    const caseRes = await fetch(`/api/cases/${caseId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        navn:               document.getElementById("rc-navn").value,
+        beskrivelse:        document.getElementById("rc-beskrivelse").value,
+        ejendomspris:       parseFloat(document.getElementById("rc-ejendomspris").value),
+        koebs_omkostninger: parseFloat(document.getElementById("rc-koebs-omkostninger").value) || 0,
+      }),
+    });
+    if (!caseRes.ok) throw new Error("Kunne ikke gemme casedata");
+
+    const laanPost = await fetch("/api/laan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        case_id:               parseInt(caseId),
+        laantype:              document.getElementById("rc-laan-type").value,
+        laanebeloeb:           parseFloat(document.getElementById("rc-laan-beloeb").value),
+        rentesats:             parseFloat(document.getElementById("rc-laan-rente").value),
+        loebetid_aar:          parseInt(document.getElementById("rc-laan-loebetid").value),
+        afdragsfri_periode_aar: parseInt(document.getElementById("rc-laan-afdragsfri").value) || 0,
+      }),
+    });
+    if (!laanPost.ok) throw new Error("Kunne ikke gemme lånedata");
+    if (laanId) await fetch(`/api/laan/${laanId}`, { method: "DELETE" });
+
+    for (const id of slettedeRenoveringer) await fetch(`/api/renoveringer/${id}`, { method: "DELETE" });
+    for (const id of slettedeOmkostninger) await fetch(`/api/driftsomkostninger/${id}`, { method: "DELETE" });
+    for (const id of slettedeUdlejninger)  await fetch(`/api/udlejning/${id}`, { method: "DELETE" });
+
+    for (const r of rcRenoveringer) {
+      await fetch("/api/renoveringer", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ case_id: parseInt(caseId), ...r }) });
+    }
+    for (const d of rcDriftsposter) {
+      await fetch("/api/driftsomkostninger", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ case_id: parseInt(caseId), ...d }) });
+    }
+    for (const u of rcUdlejningsposter) {
+      await fetch("/api/udlejning", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ case_id: parseInt(caseId), ...u }) });
+    }
+
+    document.getElementById("rediger-case-formular").style.display = "none";
+    await visCases(aktivEjendomId, document.getElementById("cases-overskrift").textContent.replace("Cases for ", ""));
+  } catch (err) {
+    alert("Gem fejlede: " + err.message);
+  }
 });
 
 loadEjendomme();

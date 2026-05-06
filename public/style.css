@@ -345,6 +345,14 @@ nav a:hover {
   display: block;
 }
 
+.rc-tab-indhold {
+  display: none;
+}
+
+.rc-tab-indhold.aktiv {
+  display: block;
+}
+
 input,
 textarea,
 select,

@@ -42,4 +42,17 @@ router.get("/:case_id", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const result = await db.query(
+      "DELETE FROM EjendomInvestApp.Renovering WHERE renovering_id = @id",
+      [{ name: "id", value: req.params.id }]
+    );
+    if (result.rowsAffected[0] === 0) return res.status(404).json({ error: "Renovering ikke fundet" });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
