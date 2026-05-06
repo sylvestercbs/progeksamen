@@ -58,8 +58,7 @@ class InvestmentCalculator {
   }
 
   // Årligt cashflow er lejeindtægt minus udgifter minus årlig låneydelse minus eventuelle renoveringer
-  beregnAarligtCashflow(renoIAar = 0) {
-    const aarligYdelse = this.beregnMaanedligYdelse() * 12;
+  beregnAarligtCashflow(aarligYdelse, renoIAar = 0) {
     return this.lejeindtaegt - this.udgifter - aarligYdelse - renoIAar;
   }
 
@@ -76,7 +75,7 @@ class InvestmentCalculator {
       }
 
       const renoIAar    = this.beregnRenoIAar(aar);
-      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(renoIAar);
+      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(aarligYdelse, renoIAar);
       const egenkapital = ejendomsvaerdi - restgaeld;
 
       resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
