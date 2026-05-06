@@ -13,7 +13,7 @@ class Renovering {
   }
 }
 
-// InvestmentCalculator er Knowledge Expert (GRASP): den har alle data og alle beregninger samlet ét sted
+// InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
 class InvestmentCalculator {
   constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter) {
     // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer (fail-fast)
