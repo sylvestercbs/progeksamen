@@ -239,11 +239,11 @@ router.post("/:id/simulate", async (req, res) => {
     const aarligUdlejn = udlejRes.recordset.reduce((sum, r) => sum + Number(r.aarligt), 0);
     const renoveringer = renoRes.recordset;
 
-    const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar);
+    const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar, aarligUdlejn, aarligDrift);
 
     // Udlejning er positiv (indtægt), drift er negativ (udgift)
     // renoveringer fratrækkes i simuler() det år de er planlagt
-    res.json(calculator.simuler(antalAar, aarligUdlejn, aarligDrift, renoveringer));
+    res.json(calculator.simuler(antalAar, renoveringer));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

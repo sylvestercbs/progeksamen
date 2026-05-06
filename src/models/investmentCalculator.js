@@ -1,9 +1,13 @@
 class InvestmentCalculator {
-  constructor(pris, laanebeloeb, rentesats, loebetid_aar) {
+  constructor(pris, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter) {
+    // rentesats forventes som decimalbrøk, fx 0.04 for 4%
+    if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     this.pris = pris;
     this.laanebeloeb = laanebeloeb;
     this.rentesats = rentesats;
     this.loebetid_aar = loebetid_aar;
+    this.lejeindtaegt = lejeindtaegt;
+    this.udgifter = udgifter;
   }
 
   // Annuitetsformlen beregner fast månedlig ydelse (ekstern matematisk viden)
@@ -11,16 +15,18 @@ class InvestmentCalculator {
     if (this.rentesats < 0) throw new Error("Rentesats må ikke være negativ");
     const r = this.rentesats / 12;
     const n = this.loebetid_aar * 12;
+    // 0% rente: ingen renteomkostning, lånet fordeles ligeligt over alle måneder
+    if (r === 0) return this.laanebeloeb / n;
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   }
 
   // Årligt cashflow er lejeindtægt minus udgifter minus årlig låneydelse minus eventuelle renoveringer
-  beregnAarligtCashflow(lejeindtaegt, udgifter, renoIAar = 0) {
+  beregnAarligtCashflow(renoIAar = 0) {
     const aarligYdelse = this.beregnMaanedligYdelse() * 12;
-    return lejeindtaegt - udgifter - aarligYdelse - renoIAar;
+    return this.lejeindtaegt - this.udgifter - aarligYdelse - renoIAar;
   }
 
-  simuler(antalAar, lejeindtaegt, udgifter, renoveringer = []) {
+  simuler(antalAar, renoveringer = []) {
     const resultater = [];
     // Restgæld starter som det fulde lånebeløb og nedbringes år for år
     let restgaeld = this.laanebeloeb;
@@ -44,7 +50,7 @@ class InvestmentCalculator {
         .filter(r => r.planlagt_aar === aar)
         .reduce((sum, r) => sum + Number(r.beloeb), 0);
 
-      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(lejeindtaegt, udgifter, renoIAar);
+      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(renoIAar);
       const egenkapital = ejendomsvaerdi - restgaeld;
 
       resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
