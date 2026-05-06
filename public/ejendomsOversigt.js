@@ -439,11 +439,11 @@ document.getElementById("rc-renovering-tilfoej").addEventListener("click", funct
 document.getElementById("rc-drift-tilfoej").addEventListener("click", function () {
   const beskrivelse  = document.getElementById("rc-drift-beskrivelse").value.trim();
   const beloeb       = document.getElementById("rc-drift-beloeb").value;
-  const er_maanedlig = document.getElementById("rc-drift-frekvens").value;
+  const erMaanedlig = document.getElementById("rc-drift-frekvens").value;
   if (!beskrivelse || !beloeb) { alert("Udfyld beskrivelse og beløb"); return; }
-  rcDriftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  rcDriftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(erMaanedlig) });
   const li = document.createElement("li");
-  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${erMaanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
   document.getElementById("rc-drift-liste").appendChild(li);
   document.getElementById("rc-drift-beskrivelse").value = "";
   document.getElementById("rc-drift-beloeb").value = "";
@@ -452,11 +452,11 @@ document.getElementById("rc-drift-tilfoej").addEventListener("click", function (
 document.getElementById("rc-udlejning-tilfoej").addEventListener("click", function () {
   const posttype     = document.getElementById("rc-udlejning-type").value;
   const beloeb       = document.getElementById("rc-udlejning-beloeb").value;
-  const er_maanedlig = document.getElementById("rc-udlejning-frekvens").value;
+  const erMaanedlig = document.getElementById("rc-udlejning-frekvens").value;
   if (!beloeb) { alert("Udfyld beløb"); return; }
-  rcUdlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  rcUdlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(erMaanedlig) });
   const li = document.createElement("li");
-  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
+  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${erMaanedlig === "1" ? "månedlig" : "årlig"}) (ny)`;
   document.getElementById("rc-udlejning-liste").appendChild(li);
   document.getElementById("rc-udlejning-beloeb").value = "";
 });

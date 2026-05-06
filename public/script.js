@@ -141,11 +141,11 @@ document.getElementById("renovering-tilfoej").addEventListener("click", function
 document.getElementById("drift-tilfoej").addEventListener("click", function () {
   const beskrivelse  = document.getElementById("drift-beskrivelse").value.trim();
   const beloeb       = document.getElementById("drift-beloeb").value;
-  const er_maanedlig = document.getElementById("drift-frekvens").value;
+  const erMaanedlig = document.getElementById("drift-frekvens").value;
   if (!beskrivelse || !beloeb) { alert("Udfyld beskrivelse og beløb"); return; }
-  driftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  driftsposter.push({ beskrivelse, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(erMaanedlig) });
   const li = document.createElement("li");
-  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"})`;
+  li.textContent = `${beskrivelse}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${erMaanedlig === "1" ? "månedlig" : "årlig"})`;
   document.getElementById("drift-liste").appendChild(li);
   document.getElementById("drift-beskrivelse").value = "";
   document.getElementById("drift-beloeb").value = "";
@@ -165,11 +165,11 @@ function opdaterDriftsTotal() {
 document.getElementById("udlejning-tilfoej").addEventListener("click", function () {
   const posttype     = document.getElementById("udlejning-type").value;
   const beloeb       = document.getElementById("udlejning-beloeb").value;
-  const er_maanedlig = document.getElementById("udlejning-frekvens").value;
+  const erMaanedlig = document.getElementById("udlejning-frekvens").value;
   if (!beloeb) { alert("Udfyld beløb"); return; }
-  udlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(er_maanedlig) });
+  udlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(erMaanedlig) });
   const li = document.createElement("li");
-  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${er_maanedlig === "1" ? "månedlig" : "årlig"})`;
+  li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${erMaanedlig === "1" ? "månedlig" : "årlig"})`;
   document.getElementById("udlejning-liste").appendChild(li);
   document.getElementById("udlejning-beloeb").value = "";
 });
@@ -179,16 +179,16 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   const navn               = document.getElementById("case-navn").value.trim();
   const beskrivelse        = document.getElementById("case-beskrivelse").value.trim();
   const ejendomspris       = parseFloat(document.getElementById("case-ejendomspris").value);
-  const koebs_omkostninger = parseFloat(document.getElementById("case-koebs-omkostninger").value) || 0;
-  const laanebeloeb        = parseFloat(document.getElementById("laan-beloeb").value);
-  const rentesats          = parseFloat(document.getElementById("laan-rente").value);
-  const loebetid_aar       = parseInt(document.getElementById("laan-loebetid").value);
+  const koebsOmkostninger = parseFloat(document.getElementById("case-koebs-omkostninger").value) || 0;
+  const laanebeloeb       = parseFloat(document.getElementById("laan-beloeb").value);
+  const rentesats         = parseFloat(document.getElementById("laan-rente").value);
+  const loebetidAar       = parseInt(document.getElementById("laan-loebetid").value);
   const afdragsfri         = parseInt(document.getElementById("laan-afdragsfri").value) || 0;
   const laantype           = document.getElementById("laan-type").value;
 
   document.getElementById("case-besked").style.color = "";
 
-  if (!navn || !ejendomspris || !laanebeloeb || !rentesats || !loebetid_aar) {
+  if (!navn || !ejendomspris || !laanebeloeb || !rentesats || !loebetidAar) {
     alert("Udfyld casenavn, ejendomspris og låneoplysninger");
     return;
   }
@@ -196,7 +196,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   const caseRes = await fetch("/api/cases", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ejendom_id: valgtEjendomId, navn, beskrivelse, ejendomspris, koebs_omkostninger })
+    body: JSON.stringify({ ejendom_id: valgtEjendomId, navn, beskrivelse, ejendomspris, koebs_omkostninger: koebsOmkostninger })
   });
 
   if (caseRes.status === 409) {
@@ -212,7 +212,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   await fetch("/api/laan", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ case_id: caseData.case_id, laantype, laanebeloeb, rentesats, loebetid_aar, afdragsfri_periode_aar: afdragsfri })
+    body: JSON.stringify({ case_id: caseData.case_id, laantype, laanebeloeb, rentesats, loebetid_aar: loebetidAar, afdragsfri_periode_aar: afdragsfri })
   });
 
   for (const post of renoveringer) {
@@ -246,7 +246,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   document.getElementById("sim-ejendomspris").value = ejendomspris;
   document.getElementById("sim-laanebeloeb").value  = laanebeloeb;
   document.getElementById("sim-rentesats").value    = rentesats;
-  document.getElementById("sim-loebetid").value     = loebetid_aar;
+  document.getElementById("sim-loebetid").value     = loebetidAar;
   document.getElementById("sim-lejeindtaegt").value = udlejningsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
   document.getElementById("sim-udgifter").value     = driftsposter.reduce((sum, p) => sum + p.beloeb * (p.er_maanedlig ? 12 : 1), 0);
 });

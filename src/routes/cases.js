@@ -51,9 +51,9 @@ router.post("/", async (req, res) => {
       [{ name: 'ejendom_id', value: ejendom_id }]
     );
 
-    let profil_id;
+    let profilId;
     if (eksisterendeProfil.recordset.length > 0) {
-      profil_id = eksisterendeProfil.recordset[0].profil_id;
+      profilId = eksisterendeProfil.recordset[0].profil_id;
     } else {
       const profilResult = await db.query(
         `INSERT INTO EjendomInvestApp.Ejendomsprofil (ejendom_id, navn, beskrivelse)
@@ -65,7 +65,7 @@ router.post("/", async (req, res) => {
           { name: 'beskrivelse', value: beskrivelse },
         ]
       );
-      profil_id = profilResult.recordset[0].profil_id;
+      profilId = profilResult.recordset[0].profil_id;
     }
 
     // Afvis hvis identisk case allerede eksisterer under samme profil
@@ -77,7 +77,7 @@ router.post("/", async (req, res) => {
          AND ejendomspris = @ejendomspris
          AND koebs_omkostninger = @koebs_omkostninger`,
       [
-        { name: 'profil_id',          value: profil_id },
+        { name: 'profil_id',          value: profilId },
         { name: 'navn',               value: navn },
         { name: 'beskrivelse',        value: beskrivelse || null },
         { name: 'ejendomspris',       value: ejendomspris || 0 },
@@ -97,7 +97,7 @@ router.post("/", async (req, res) => {
        OUTPUT INSERTED.case_id
        VALUES (@profil_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
       [
-        { name: 'profil_id',          value: profil_id },
+        { name: 'profil_id',          value: profilId },
         { name: 'navn',               value: navn },
         { name: 'beskrivelse',        value: beskrivelse },
         { name: 'ejendomspris',       value: ejendomspris || 0 },
