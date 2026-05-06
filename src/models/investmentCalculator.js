@@ -1,4 +1,5 @@
-// Renovering er en selvstændig klasse (Single Responsibility): den ved hvornår den gælder — det ved InvestmentCalculator ikke
+// Renovering er en selvstændig klasse (Single Responsibility): den ved hvornår den gælder, det ved InvestmentCalculator ikke
+// Dette sikre egentlig bare at det kun kører én ting af gangen
 class Renovering {
   constructor(planlagtAar, beloeb) {
     // Validering sker i constructor så et ugyldigt objekt aldrig kan oprettes (fail-fast princip)
@@ -7,7 +8,7 @@ class Renovering {
     this.beloeb = beloeb;
   }
 
-  // Isolerer sammenligningslogikken — InvestmentCalculator behøver ikke kende til Renoveringens interne struktur
+  // Isolerer sammenligningslogikken, InvestmentCalculator behøver ikke kende til Renoveringens interne struktur
   erPlanlagtIAar(aar) {
     return this.planlagtAar === aar;
   }
@@ -16,7 +17,7 @@ class Renovering {
 // InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
 class InvestmentCalculator {
   constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter) {
-    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer (fail-fast)
+    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer 
     // rentesats forventes som decimalbrøk — 0.04 for 4% — ikke som heltal
     if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     if (rentesats < 0) throw new Error("Rentesats må ikke være negativ");
@@ -26,10 +27,10 @@ class InvestmentCalculator {
     this.loebetidAar = loebetidAar;
     this.lejeindtaegt = lejeindtaegt;
     this.udgifter = udgifter;
-    // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructor-parameter
+    // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructorvparameter
     // fordi antallet er variabelt og ukendt ved oprettelse
     this.renoveringer = [];
-    // 2% årlig prisstigning er en ekstern markedsantagelse — navngivet felt frem for magic number i beregningen
+    // 2% årlig prisstigning er en ekstern markedsantagelse, taget for Danmarksstatistik.
     this.vaekstrate = 0.02;
   }
 
@@ -39,7 +40,7 @@ class InvestmentCalculator {
     this.renoveringer.push(renovering);
   }
 
-  // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1)
+  // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1) bare vores standard fremskrivning fra VØS
   // P = lånebeløb, r = månedlig rente, n = antal måneder
   beregnMaanedligYdelse() {
     const r = this.rentesats / 12;
@@ -64,7 +65,7 @@ class InvestmentCalculator {
     return Math.max(0, restgaeld - aarligAfdrag);
   }
 
-  // Delegerer til Renovering.erPlanlagtIAar() — InvestmentCalculator ved ikke hvornår en renovering gælder
+  // Leverer til Renovering.erPlanlagtIAar() — InvestmentCalculator ved ikke hvornår en renovering gælder
   beregnRenoIAar(aar) {
     return this.renoveringer
       .filter(r => r.erPlanlagtIAar(aar))
