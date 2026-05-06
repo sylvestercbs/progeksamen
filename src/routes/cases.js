@@ -68,6 +68,29 @@ router.post("/", async (req, res) => {
       profil_id = profilResult.recordset[0].profil_id;
     }
 
+    // Afvis hvis identisk case allerede eksisterer under samme profil
+    const duplikatTjek = await db.query(
+      `SELECT TOP 1 case_id FROM EjendomInvestApp.Investeringscase
+       WHERE profil_id = @profil_id
+         AND navn = @navn
+         AND ISNULL(beskrivelse, '') = ISNULL(@beskrivelse, '')
+         AND ejendomspris = @ejendomspris
+         AND koebs_omkostninger = @koebs_omkostninger`,
+      [
+        { name: 'profil_id',          value: profil_id },
+        { name: 'navn',               value: navn },
+        { name: 'beskrivelse',        value: beskrivelse || null },
+        { name: 'ejendomspris',       value: ejendomspris || 0 },
+        { name: 'koebs_omkostninger', value: koebs_omkostninger || 0 },
+      ]
+    );
+    if (duplikatTjek.recordset.length > 0) {
+      return res.status(409).json({
+        error: 'Identisk case allerede oprettet',
+        case_id: duplikatTjek.recordset[0].case_id
+      });
+    }
+
     // Opret Investeringscase med reference til den nye profil
     const caseResult = await db.query(
       `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)

@@ -186,6 +186,8 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
   const afdragsfri         = parseInt(document.getElementById("laan-afdragsfri").value) || 0;
   const laantype           = document.getElementById("laan-type").value;
 
+  document.getElementById("case-besked").style.color = "";
+
   if (!navn || !ejendomspris || !laanebeloeb || !rentesats || !loebetid_aar) {
     alert("Udfyld casenavn, ejendomspris og låneoplysninger");
     return;
@@ -196,6 +198,15 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ejendom_id: valgtEjendomId, navn, beskrivelse, ejendomspris, koebs_omkostninger })
   });
+
+  if (caseRes.status === 409) {
+    const fejlData = await caseRes.json();
+    document.getElementById("case-besked").textContent =
+      `En identisk case er allerede oprettet (ID: ${fejlData.case_id}) — rediger formularen for at oprette en ny.`;
+    document.getElementById("case-besked").style.color = "#c0392b";
+    return;
+  }
+
   const caseData = await caseRes.json();
 
   await fetch("/api/laan", {
