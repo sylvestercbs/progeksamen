@@ -11,14 +11,14 @@ class Renovering {
 }
 
 class InvestmentCalculator {
-  constructor(pris, laanebeloeb, rentesats, loebetid_aar, lejeindtaegt, udgifter) {
+  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter) {
     // rentesats forventes som decimalbrøk, fx 0.04 for 4%
     if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     if (rentesats < 0) throw new Error("Rentesats må ikke være negativ");
     this.pris = pris;
     this.laanebeloeb = laanebeloeb;
     this.rentesats = rentesats;
-    this.loebetid_aar = loebetid_aar;
+    this.loebetidAar = loebetidAar;
     this.lejeindtaegt = lejeindtaegt;
     this.udgifter = udgifter;
     this.renoveringer = [];
@@ -32,7 +32,7 @@ class InvestmentCalculator {
   // Annuitetsformlen beregner fast månedlig ydelse (ekstern matematisk viden)
   beregnMaanedligYdelse() {
     const r = this.rentesats / 12;
-    const n = this.loebetid_aar * 12;
+    const n = this.loebetidAar * 12;
     // 0% rente: ingen renteomkostning, lånet fordeles ligeligt over alle måneder
     if (r === 0) return this.laanebeloeb / n;
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -58,7 +58,8 @@ class InvestmentCalculator {
   }
 
   // Årligt cashflow er lejeindtægt minus udgifter minus årlig låneydelse minus eventuelle renoveringer
-  beregnAarligtCashflow(aarligYdelse, renoIAar = 0) {
+  beregnAarligtCashflow(renoIAar = 0) {
+    const aarligYdelse = this.beregnMaanedligYdelse() * 12;
     return this.lejeindtaegt - this.udgifter - aarligYdelse - renoIAar;
   }
 
@@ -75,7 +76,7 @@ class InvestmentCalculator {
       }
 
       const renoIAar    = this.beregnRenoIAar(aar);
-      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(aarligYdelse, renoIAar);
+      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(renoIAar);
       const egenkapital = ejendomsvaerdi - restgaeld;
 
       resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
