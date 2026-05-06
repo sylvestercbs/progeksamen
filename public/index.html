@@ -74,6 +74,9 @@
         <label>Købsomkostninger (kr.):<br>
           <input type="number" id="case-koebs-omkostninger" placeholder="fx 100000">
         </label>
+        <div class="knap-række" style="margin-top:16px; justify-content:flex-end">
+          <button type="button" onclick="skiftTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+        </div>
       </div>
 
       <div id="tab-finansiering" class="tab-indhold">
@@ -98,6 +101,10 @@
             <option value="Banklaan">Banklån</option>
           </select>
         </label>
+        <div class="knap-række" style="margin-top:16px">
+          <button type="button" onclick="skiftTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+          <button type="button" onclick="skiftTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+        </div>
       </div>
 
       <div id="tab-renovering" class="tab-indhold">
@@ -114,6 +121,10 @@
         </label><br>
         <button id="renovering-tilfoej">Tilføj renovering</button>
         <ul id="renovering-liste"></ul>
+        <div class="knap-række" style="margin-top:16px">
+          <button type="button" onclick="skiftTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+          <button type="button" onclick="skiftTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+        </div>
       </div>
 
       <div id="tab-drift" class="tab-indhold">
@@ -137,6 +148,10 @@
           <p>Månedlig total: <strong><span id="drift-total-maaned"></span> kr.</strong></p>
           <p>Årlig total: <strong><span id="drift-total-aar"></span> kr.</strong></p>
         </div>
+        <div class="knap-række" style="margin-top:16px">
+          <button type="button" onclick="skiftTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+          <button type="button" onclick="skiftTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+        </div>
       </div>
 
       <div id="tab-udlejning" class="tab-indhold">
@@ -159,8 +174,10 @@
         </label><br>
         <button id="udlejning-tilfoej">Tilføj post</button>
         <ul id="udlejning-liste"></ul>
-        <br>
-        <button id="opret-case-knap">Opret case</button>
+        <div class="knap-række" style="margin-top:16px">
+          <button type="button" onclick="skiftTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+          <button id="opret-case-knap" class="primær-knap primær-knap--smal">Opret case</button>
+        </div>
       </div>
 
       <p id="case-besked"></p>

@@ -74,6 +74,9 @@
       <label>Beskrivelse:<br><textarea id="rc-beskrivelse" placeholder="Beskriv investeringen..."></textarea></label><br>
       <label>Ejendomspris (kr.):<br><input type="number" id="rc-ejendomspris" placeholder="fx 3000000"></label><br>
       <label>Købsomkostninger (kr.):<br><input type="number" id="rc-koebs-omkostninger" placeholder="fx 100000"></label>
+      <div class="knap-række" style="margin-top:16px; justify-content:flex-end">
+        <button type="button" onclick="skiftRcTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+      </div>
     </div>
 
     <div id="rc-tab-finansiering" class="rc-tab-indhold">
@@ -90,6 +93,10 @@
           <option value="Banklaan">Banklån</option>
         </select>
       </label>
+      <div class="knap-række" style="margin-top:16px">
+        <button type="button" onclick="skiftRcTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+        <button type="button" onclick="skiftRcTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+      </div>
     </div>
 
     <div id="rc-tab-renovering" class="rc-tab-indhold">
@@ -99,6 +106,10 @@
       <label>Beløb (kr.):<br><input type="number" id="rc-renovering-beloeb" placeholder="fx 150000"></label><br>
       <label>Planlagt år (relativt til køb):<br><input type="number" id="rc-renovering-aar" placeholder="fx 3"></label><br>
       <button id="rc-renovering-tilfoej" class="sekundær-knap sekundær-knap--smal">Tilføj renovering</button>
+      <div class="knap-række" style="margin-top:16px">
+        <button type="button" onclick="skiftRcTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+        <button type="button" onclick="skiftRcTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+      </div>
     </div>
 
     <div id="rc-tab-drift" class="rc-tab-indhold">
@@ -113,6 +124,10 @@
         </select>
       </label><br>
       <button id="rc-drift-tilfoej" class="sekundær-knap sekundær-knap--smal">Tilføj omkostning</button>
+      <div class="knap-række" style="margin-top:16px">
+        <button type="button" onclick="skiftRcTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+        <button type="button" onclick="skiftRcTab(1)" class="primær-knap primær-knap--smal">Næste →</button>
+      </div>
     </div>
 
     <div id="rc-tab-udlejning" class="rc-tab-indhold">
@@ -133,9 +148,11 @@
         </select>
       </label><br>
       <button id="rc-udlejning-tilfoej" class="sekundær-knap sekundær-knap--smal">Tilføj post</button>
-      <br><br>
-      <button id="rc-gem-knap" class="primær-knap">Gem ændringer</button>
-      <button id="rc-annuller-knap" class="sekundær-knap">Annuller</button>
+      <div class="knap-række" style="margin-top:16px">
+        <button type="button" onclick="skiftRcTab(-1)" class="sekundær-knap sekundær-knap--smal">← Tilbage</button>
+        <button id="rc-gem-knap" class="primær-knap primær-knap--smal">Gem ændringer</button>
+        <button id="rc-annuller-knap" class="sekundær-knap sekundær-knap--smal">Annuller</button>
+      </div>
     </div>
   </div>
 

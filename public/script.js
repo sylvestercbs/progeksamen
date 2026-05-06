@@ -272,6 +272,16 @@ function visKort() {
     .openPopup();
 }
 
+function skiftTab(delta) {
+  const knapper = [...document.querySelectorAll(".tab-knap")];
+  const aktivIndex = knapper.findIndex(k => k.classList.contains("aktiv"));
+  const naesteIndex = aktivIndex + delta;
+  if (naesteIndex >= 0 && naesteIndex < knapper.length) {
+    knapper[naesteIndex].click();
+    document.getElementById("case-formular").scrollIntoView({ behavior: "smooth" });
+  }
+}
+
 // Skifter aktiv tab ved klik — tilføjer og fjerner CSS-klassen "aktiv"
 document.querySelectorAll(".tab-knap").forEach(knap => {
   knap.addEventListener("click", function () {

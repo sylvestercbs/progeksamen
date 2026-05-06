@@ -1,5 +1,15 @@
 "use strict";
 
+function skiftRcTab(delta) {
+  const knapper = [...document.querySelectorAll(".rc-tab-knap")];
+  const aktivIndex = knapper.findIndex(k => k.classList.contains("aktiv"));
+  const naesteIndex = aktivIndex + delta;
+  if (naesteIndex >= 0 && naesteIndex < knapper.length) {
+    knapper[naesteIndex].click();
+    document.getElementById("rediger-case-formular").scrollIntoView({ behavior: "smooth" });
+  }
+}
+
 async function loadEjendomme() {
   const res = await fetch("/api/ejendomme");
   const ejendomme = await res.json();
