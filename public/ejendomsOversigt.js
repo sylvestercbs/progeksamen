@@ -154,6 +154,30 @@ function toggleCaseValg(caseId, casenavn) {
   }
 }
 
+// Bygger en data-tabel med én kolonne per casenavn — genbruges af både sammenligning og enkelt overblik
+function bygDataTabel(rows, kolonneNavne) {
+  const tabel = document.createElement("table");
+  tabel.className = "data-tabel";
+
+  tabel.innerHTML = `
+    <tr>
+      <th>Felt</th>
+      ${kolonneNavne.map(navn => `<th>${navn}</th>`).join("")}
+    </tr>
+  `;
+
+  rows.forEach(function(row) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${row[0]}</strong></td>
+      ${row.slice(1).map(cel => `<td>${cel || "-"}</td>`).join("")}
+    `;
+    tabel.appendChild(tr);
+  });
+
+  return tabel;
+}
+
 async function sammenlignCases() {
   const data = [];
   for (const c of valgteCases) {
@@ -180,38 +204,9 @@ async function sammenlignCases() {
     ["Månedlig ydelse", ...data.map(d => d.ydelse != null ? fmt(Math.round(d.ydelse)) : "-")],
   ];
 
-  const tabel = document.createElement("table");
-  tabel.className = "data-tabel";
-
-  const headerRaekke = document.createElement("tr");
-  const feltHeader = document.createElement("th");
-  feltHeader.textContent = "Felt";
-  headerRaekke.appendChild(feltHeader);
-  data.forEach(function(d) {
-    const th = document.createElement("th");
-    th.textContent = d.case.navn;
-    headerRaekke.appendChild(th);
-  });
-  tabel.appendChild(headerRaekke);
-
-  rows.forEach(function(row) {
-    const tr = document.createElement("tr");
-    const tdFelt = document.createElement("td");
-    const strong = document.createElement("strong");
-    strong.textContent = row[0];
-    tdFelt.appendChild(strong);
-    tr.appendChild(tdFelt);
-    for (let i = 1; i < row.length; i++) {
-      const td = document.createElement("td");
-      td.textContent = row[i] || "-";
-      tr.appendChild(td);
-    }
-    tabel.appendChild(tr);
-  });
-
   const indhold = document.getElementById("sammenlign-indhold");
   indhold.innerHTML = "";
-  indhold.appendChild(tabel);
+  indhold.appendChild(bygDataTabel(rows, data.map(d => d.case.navn)));
 
   const sek = document.getElementById("sammenlign-sektion");
   sek.style.display = "block";
@@ -306,6 +301,33 @@ async function klargørSimulering(caseId, casenavn) {
   const aarligDrift  = drift.reduce((sum, r) => sum + Number(r.aarligt_beloeb), 0);
   document.getElementById("sim-lejeindtaegt").value = aarligUdlejn;
   document.getElementById("sim-udgifter").value     = aarligDrift;
+
+  // Byg overblik-tabel med samme struktur som sammenligning — genbruger bygDataTabel()
+  const l = laan[0] || {};
+
+  // Positive poster = lejeindtægter, negative poster = lejeudgifter (fx ejendomsmægler, tomgang)
+  const maanedligLejeindtaegt = udlejn.filter(r => r.aarligt_beloeb > 0).reduce((sum, r) => sum + Number(r.aarligt_beloeb), 0) / 12;
+  const maanedligLejeudgift   = udlejn.filter(r => r.aarligt_beloeb < 0).reduce((sum, r) => sum + Math.abs(Number(r.aarligt_beloeb)), 0) / 12;
+  const maanedligDrift        = aarligDrift / 12;
+  const maanedligCashflow     = aarligUdlejn / 12 - maanedligDrift - (l.maanedlig_ydelse || 0);
+
+  const overblikRows = [
+    ["Casenavn",                     casenavn],
+    ["Ejendomspris",                 fmt(invCase ? invCase.ejendomspris : null)],
+    ["Lånebeløb",                    fmt(l.laanebeloeb)],
+    ["Rentesats",                    l.rentesats != null ? (l.rentesats * 100).toFixed(2) + " %" : "-"],
+    ["Løbetid",                      l.loebetid_aar != null ? l.loebetid_aar + " år" : "-"],
+    ["Månedlig ydelse",              l.maanedlig_ydelse != null ? fmt(Math.round(l.maanedlig_ydelse)) : "-"],
+    ["Månedlige lejeindtægter",      fmt(Math.round(maanedligLejeindtaegt))],
+    ["Månedlige lejeudgifter",       fmt(Math.round(maanedligLejeudgift))],
+    ["Månedlige driftsomkostninger", fmt(Math.round(maanedligDrift))],
+    ["Samlet cashflow-påvirkning",   fmt(Math.round(maanedligCashflow))],
+  ];
+  document.getElementById("case-overblik-navn").textContent = casenavn;
+  const overblikIndhold = document.getElementById("case-overblik-indhold");
+  overblikIndhold.innerHTML = "";
+  overblikIndhold.appendChild(bygDataTabel(overblikRows, [casenavn]));
+  document.getElementById("case-overblik-sektion").style.display = "block";
 
   document.getElementById("sim-sektion").style.display = "block";
   document.getElementById("sim-resultat").style.display = "none";
