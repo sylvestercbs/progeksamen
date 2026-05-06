@@ -35,7 +35,7 @@ const renoveringerRouter = require("./routes/renoveringer");
 app.use("/api/renoveringer", renoveringerRouter);
 
 app.get("/ejendomme", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/ejendomme.html"));
+  res.sendFile(path.join(__dirname, "../public/ejendomsOversigt.html"));
 });
 
 app.listen(PORT, async () => {
