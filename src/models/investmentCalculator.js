@@ -33,14 +33,20 @@ class Laan {
   }
 
   // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1) — standard fremskrivning fra VØS
-  // Med afdragsfri periode amortiseres hele lånebeløbet over de resterende år
-  beregnMaanedligYdelse() {
-    const r = this.rentesats / 12;
-    const amortisationsAar = this.loebetidAar - this.afdragsfriPeriodeAar;
+  // Statisk metode så formlen kan kaldes uden at instantiere et Laan-objekt
+  // (fx fra ruter hvor data allerede er valideret af DB-laget)
+  static beregnMaanedligYdelse(laanebeloeb, rentesats, loebetidAar, afdragsfriPeriodeAar = 0) {
+    const r = rentesats / 12;
+    const amortisationsAar = loebetidAar - afdragsfriPeriodeAar;
     const n = amortisationsAar * 12;
     // Særtilfælde: 0% rente giver division med nul i formlen — lånet fordeles ligeligt i stedet
-    if (r === 0) return this.laanebeloeb / n;
-    return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    if (r === 0) return laanebeloeb / n;
+    return laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+
+  // Instans-metode delegerer til den statiske — én formel-implementation, to kald-måder
+  beregnMaanedligYdelse() {
+    return Laan.beregnMaanedligYdelse(this.laanebeloeb, this.rentesats, this.loebetidAar, this.afdragsfriPeriodeAar);
   }
 
   // I afdragsfri år betales kun rente; ellers den fulde annuitetsydelse

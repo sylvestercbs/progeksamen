@@ -32,18 +32,24 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Henter alle lån for en case — tilføjer beregnet månedlig ydelse fra InvestmentCalculator
-// så frontend ikke duplikerer annuitetsformlen
+// Henter alle lån for en case — tilføjer beregnet månedlig ydelse via Laan.beregnMaanedligYdelse
+// (statisk metode), så frontend ikke duplikerer annuitetsformlen og vi undgår at instantiere
+// et Laan-objekt med valideringstjek pr. række
 router.get("/:case_id", async (req, res) => {
   try {
     const result = await db.query(
       "SELECT * FROM EjendomInvestApp.Laan WHERE case_id = @case_id",
       [{ name: "case_id", value: req.params.case_id }]
     );
-    const laanMedYdelse = result.recordset.map(l => {
-      const laan = new Laan(Number(l.laanebeloeb), Number(l.rentesats), l.loebetid_aar, l.afdragsfri_periode_aar || 0);
-      return { ...l, maanedlig_ydelse: laan.beregnMaanedligYdelse() };
-    });
+    const laanMedYdelse = result.recordset.map(l => ({
+      ...l,
+      maanedlig_ydelse: Laan.beregnMaanedligYdelse(
+        Number(l.laanebeloeb),
+        Number(l.rentesats),
+        l.loebetid_aar,
+        l.afdragsfri_periode_aar || 0
+      ),
+    }));
     res.json(laanMedYdelse);
   } catch (err) {
     res.status(500).json({ error: err.message });
