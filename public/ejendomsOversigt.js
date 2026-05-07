@@ -516,20 +516,27 @@ document.getElementById("rc-gem-knap").addEventListener("click", async function 
     });
     if (!caseRes.ok) throw new Error("Kunne ikke gemme casedata");
 
-    const laanPost = await fetch("/api/laan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        case_id:               parseInt(caseId),
-        laantype:              document.getElementById("rc-laan-type").value,
-        laanebeloeb:           parseFloat(document.getElementById("rc-laan-beloeb").value),
-        rentesats:             parseFloat(document.getElementById("rc-laan-rente").value),
-        loebetid_aar:          parseInt(document.getElementById("rc-laan-loebetid").value),
-        afdragsfri_periode_aar: parseInt(document.getElementById("rc-laan-afdragsfri").value) || 0,
-      }),
-    });
-    if (!laanPost.ok) throw new Error("Kunne ikke gemme lånedata");
-    if (laanId) await fetch(`/api/laan/${laanId}`, { method: "DELETE" });
+    // Findes lånet allerede, opdateres det atomart med PUT — ellers oprettes nyt med POST.
+    // Tidligere oprettede vi nyt og slettede gammelt; hvis DELETE fejlede, blev der to lån.
+    const laanBody = {
+      laantype:              document.getElementById("rc-laan-type").value,
+      laanebeloeb:           parseFloat(document.getElementById("rc-laan-beloeb").value),
+      rentesats:             parseFloat(document.getElementById("rc-laan-rente").value),
+      loebetid_aar:          parseInt(document.getElementById("rc-laan-loebetid").value),
+      afdragsfri_periode_aar: parseInt(document.getElementById("rc-laan-afdragsfri").value) || 0,
+    };
+    const laanRes = laanId
+      ? await fetch(`/api/laan/${laanId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(laanBody),
+        })
+      : await fetch("/api/laan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ case_id: parseInt(caseId), ...laanBody }),
+        });
+    if (!laanRes.ok) throw new Error("Kunne ikke gemme lånedata");
 
     for (const id of slettedeRenoveringer) await fetch(`/api/renoveringer/${id}`, { method: "DELETE" });
     for (const id of slettedeOmkostninger) await fetch(`/api/driftsomkostninger/${id}`, { method: "DELETE" });
