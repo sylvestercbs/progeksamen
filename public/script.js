@@ -11,6 +11,7 @@ let valgtVejnavn = null;
 let valgtHusnummer = null;
 let valgtPostnummer = null;
 let valgtBynavn = null;
+let aktivCaseId = null; // Sættes når en case oprettes succesfuldt — bruges af simuleringen
 
 // 2. Opretter et kort
 let map = L.map("map", { zoomControl: false }).setView([55.6761, 12.5683], 15); // Fjerner zoom-knapper fra kortet
@@ -258,6 +259,7 @@ document.getElementById("opret-case-knap").addEventListener("click", async funct
     });
   }
 
+  aktivCaseId = caseData.case_id;
   document.getElementById("case-besked").textContent = "Case oprettet med ID: " + caseData.case_id;
   document.getElementById("sim-sektion").style.display = "block";
 
@@ -325,16 +327,14 @@ document.querySelectorAll(".tab-knap").forEach(knap => {
 document.getElementById("sim-knap").addEventListener("click", async function () {
   const antalAar = parseInt(document.getElementById("sim-antal-aar").value);
 
-  // Henter case-id fra den sidst oprettede case (sat via case-besked-elementet)
-  const caseBesked = document.getElementById("case-besked").textContent;
-  const caseId = caseBesked.match(/\d+/)?.[0];
-  if (!caseId) {
+  // Brug den aktive case-id fra modul-state — ikke parse fra DOM-tekst
+  if (!aktivCaseId) {
     alert("Opret først en case");
     return;
   }
 
   // POST til /api/cases/:id/simulate — backend henter al data fra DB via case-id
-  const res = await fetch(`/api/cases/${caseId}/simulate`, {
+  const res = await fetch(`/api/cases/${aktivCaseId}/simulate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ antalAar })
