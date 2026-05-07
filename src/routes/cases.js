@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/database");
-const { InvestmentCalculator, Renovering } = require("../models/investmentCalculator");
+const { InvestmentCalculator, Renovering, Laan } = require("../models/investmentCalculator");
 
 // Henter cases — filtrerer på ejendom_id hvis query param er angivet
 router.get("/", async (req, res) => {
@@ -110,21 +110,32 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Opdaterer alle redigerbare felter på en case
+// Opdaterer alle redigerbare felter på en case (fuld replace - REST PUT-konvention)
 router.put("/:id", async (req, res) => {
   try {
     const { navn, beskrivelse, ejendomspris, koebs_omkostninger } = req.body;
+
+    if (!navn || !navn.trim()) return res.status(400).json({ error: "Navn er påkrævet" });
+    if (typeof ejendomspris !== "number" || ejendomspris <= 0) {
+      return res.status(400).json({ error: "Ejendomspris skal være et positivt tal" });
+    }
+    if (typeof koebs_omkostninger !== "number" || koebs_omkostninger < 0) {
+      return res.status(400).json({ error: "Købsomkostninger skal være et ikke-negativt tal" });
+    }
+
     const result = await db.query(
       `UPDATE EjendomInvestApp.Investeringscase
-       SET navn = COALESCE(@navn, navn), beskrivelse = COALESCE(@beskrivelse, beskrivelse),
-           ejendomspris = @ejendomspris, koebs_omkostninger = COALESCE(@koebs_omkostninger, koebs_omkostninger)
+       SET navn               = @navn,
+           beskrivelse        = @beskrivelse,
+           ejendomspris       = @ejendomspris,
+           koebs_omkostninger = @koebs_omkostninger
        OUTPUT INSERTED.*
        WHERE case_id = @id`,
       [
         { name: "navn",               value: navn },
-        { name: "beskrivelse",        value: beskrivelse },
-        { name: "ejendomspris",       value: ejendomspris || 0 },
-        { name: "koebs_omkostninger", value: koebs_omkostninger || 0 },
+        { name: "beskrivelse",        value: beskrivelse ?? null },
+        { name: "ejendomspris",       value: ejendomspris },
+        { name: "koebs_omkostninger", value: koebs_omkostninger },
         { name: "id",                 value: req.params.id },
       ]
     );
@@ -257,12 +268,21 @@ router.post("/:id/simulate", async (req, res) => {
     if (!laanRes.recordset.length) return res.status(409).json({ error: "Casen mangler et lån" });
 
     const invCase      = caseRes.recordset[0];
-    const laan         = laanRes.recordset[0];
+    // En case kan have flere lån (fx realkredit + bank) — alle skal med i simuleringen
+    const laanArr      = laanRes.recordset.map(l =>
+      new Laan(Number(l.laanebeloeb), Number(l.rentesats), l.loebetid_aar, l.afdragsfri_periode_aar || 0)
+    );
     const aarligDrift  = driftRes.recordset.reduce((sum, r) => sum + Number(r.aarligt), 0);
     const aarligUdlejn = udlejRes.recordset.reduce((sum, r) => sum + Number(r.aarligt), 0);
     const renoveringer = renoRes.recordset;
 
-    const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar, aarligUdlejn, aarligDrift, laan.afdragsfri_periode_aar || 0, Number(invCase.koebs_omkostninger) || 0);
+    const calculator = new InvestmentCalculator(
+      invCase.ejendomspris,
+      laanArr,
+      aarligUdlejn,
+      aarligDrift,
+      Number(invCase.koebs_omkostninger) || 0
+    );
 
     // Renoveringer fra DB konverteres til Renovering-objekter og tilføjes calculatoren
     renoveringer.forEach(r => calculator.tilfoejRenovering(new Renovering(r.planlagt_aar, Number(r.beloeb))));

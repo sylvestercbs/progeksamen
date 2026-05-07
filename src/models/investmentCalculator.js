@@ -1,4 +1,4 @@
-// Renovering er en selvstændig klasse (Single Responsibility): den ved hvornår den gælder, det ved InvestmentCalculator ikke
+// Renovering er en selvstændig klasse: den ved hvornår den gælder, det ved InvestmentCalculator ikke
 // Dette sikre egentlig bare at det kun kører én ting af gangen
 class Renovering {
   constructor(planlagtAar, beloeb) {
@@ -14,41 +14,26 @@ class Renovering {
   }
 }
 
-// InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
-class InvestmentCalculator {
-  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter, afdragsfriPeriodeAar = 0, koebsOmkostninger = 0) {
-    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer
+// Laan håndterer sin egen amortisering — annuitetsformel, afdragsfri-periode og restgæld pr. år.
+// Det gør at InvestmentCalculator bare kan iterere over en liste af lån uden at kende renteformler,
+// og en case kan have flere lån (fx realkreditlån + banklån) der amortiseres uafhængigt af hinanden.
+class Laan {
+  constructor(laanebeloeb, rentesats, loebetidAar, afdragsfriPeriodeAar = 0) {
+    if (laanebeloeb < 0) throw new Error("Lånebeløb må ikke være negativt");
     // rentesats forventes som decimalbrøk — 0.04 for 4% — ikke som heltal
     if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     if (rentesats < 0) throw new Error("Rentesats må ikke være negativ");
+    if (loebetidAar <= 0) throw new Error("Løbetid skal være positiv");
     if (afdragsfriPeriodeAar < 0) throw new Error("Afdragsfri periode må ikke være negativ");
     if (afdragsfriPeriodeAar >= loebetidAar) throw new Error("Afdragsfri periode skal være kortere end løbetiden");
-    if (koebsOmkostninger < 0) throw new Error("Købsomkostninger må ikke være negative");
-    this.pris = pris;
     this.laanebeloeb = laanebeloeb;
     this.rentesats = rentesats;
     this.loebetidAar = loebetidAar;
-    this.lejeindtaegt = lejeindtaegt;
-    this.udgifter = udgifter;
     this.afdragsfriPeriodeAar = afdragsfriPeriodeAar;
-    this.koebsOmkostninger = koebsOmkostninger;
-    // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructorvparameter
-    // fordi antallet er variabelt og ukendt ved oprettelse
-    this.renoveringer = [];
-    // 2% årlig prisstigning er en ekstern markedsantagelse, taget for Danmarksstatistik.
-    this.vaekstrate = 0.02;
   }
 
-  // Samler renoveringer på calculatoren i stedet for at sende dem som parameter til simuler()
-  // så alle relevante data er ét sted (Knowledge Expert)
-  tilfoejRenovering(renovering) {
-    this.renoveringer.push(renovering);
-  }
-
-  // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1) bare vores standard fremskrivning fra VØS
-  // P = lånebeløb, r = månedlig rente, n = antal måneder
-  // Med afdragsfri periode amortiseres hele lånebeløbet over de resterende år —
-  // i de afdragsfri år betales kun rente, så restgælden er stadig fuld når amortiseringen starter
+  // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1) — standard fremskrivning fra VØS
+  // Med afdragsfri periode amortiseres hele lånebeløbet over de resterende år
   beregnMaanedligYdelse() {
     const r = this.rentesats / 12;
     const amortisationsAar = this.loebetidAar - this.afdragsfriPeriodeAar;
@@ -58,19 +43,58 @@ class InvestmentCalculator {
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   }
 
-  // Sammensatte renter: ejendomsværdien vokser eksponentielt med vaekstrate hvert år
-  beregnEjendomsvaerdi(aar) {
-    return this.pris * Math.pow(1 + this.vaekstrate, aar);
+  // I afdragsfri år betales kun rente; ellers den fulde annuitetsydelse
+  beregnAarligYdelseIAar(aar, restgaeld) {
+    if (aar <= 0) return 0;
+    const erAfdragsfri = aar <= this.afdragsfriPeriodeAar;
+    if (erAfdragsfri) return restgaeld * this.rentesats;
+    return this.beregnMaanedligYdelse() * 12;
+  }
+
+  beregnAarligRente(restgaeld) {
+    return restgaeld * this.rentesats;
   }
 
   // Af den samlede ydelse går renteandelen til banken, resten er afdrag på gælden
-  // Renteandelen falder over tid fordi restgælden falder — afdragsandelen stiger tilsvarende
-  // aarligYdelse modtages som parameter fordi simuler() beregner den én gang og deler den her og i beregnAarligtCashflow
+  // Math.max(0, ...) forhindrer negativ restgæld i lånets sidste år pga. afrundingsfejl
   beregnNyRestgaeld(restgaeld, aarligYdelse) {
-    const aarligRente  = restgaeld * this.rentesats;
+    const aarligRente = restgaeld * this.rentesats;
     const aarligAfdrag = aarligYdelse - aarligRente;
-    // Math.max(0, ...) forhindrer negativ restgæld i lånets sidste år pga. afrundingsfejl
     return Math.max(0, restgaeld - aarligAfdrag);
+  }
+}
+
+// InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
+class InvestmentCalculator {
+  constructor(pris, laan, lejeindtaegt, udgifter, koebsOmkostninger = 0) {
+    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer
+    if (!Array.isArray(laan)) throw new Error("laan skal være en liste af Laan-objekter");
+    if (laan.length === 0) throw new Error("Mindst ét lån er påkrævet");
+    if (koebsOmkostninger < 0) throw new Error("Købsomkostninger må ikke være negative");
+    this.pris = pris;
+    this.laan = laan;
+    this.lejeindtaegt = lejeindtaegt;
+    this.udgifter = udgifter;
+    this.koebsOmkostninger = koebsOmkostninger;
+    // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructorparameter
+    // fordi antallet er variabelt og ukendt ved oprettelse
+    this.renoveringer = [];
+    // 2% årlig prisstigning er en ekstern markedsantagelse, taget for Danmarksstatistik.
+    this.vaekstrate = 0.02;
+  }
+
+  tilfoejRenovering(renovering) {
+    this.renoveringer.push(renovering);
+  }
+
+  // Samlet månedlig ydelse på tværs af alle lån (delegerer til hvert Laan-objekt)
+  beregnMaanedligYdelse() {
+    return this.laan.reduce((sum, l) => sum + l.beregnMaanedligYdelse(), 0);
+  }
+
+  // Sammensatte renter: ejendomsværdien vokser eksponentielt med vaekstrate hvert år
+  beregnEjendomsvaerdi(aar) {
+    return this.pris * Math.pow(1 + this.vaekstrate, aar);
   }
 
   // Leverer til Renovering.erPlanlagtIAar() — InvestmentCalculator ved ikke hvornår en renovering gælder
@@ -80,48 +104,48 @@ class InvestmentCalculator {
       .reduce((sum, r) => sum + r.beloeb, 0);
   }
 
-  // aarligYdelse modtages som parameter fordi simuler() allerede har beregnet den —
-  // at kalde beregnMaanedligYdelse() her ville genberegne det samme for hvert af de 30 år
   beregnAarligtCashflow(aarligYdelse, renoIAar = 0) {
     return this.lejeindtaegt - this.udgifter - aarligYdelse - renoIAar;
   }
 
   simuler(antalAar) {
     const resultater = [];
-    let restgaeld = this.laanebeloeb;
+    // Parallelt array — én restgæld pr. lån, så hvert lån amortiseres uafhængigt
+    const restgaelder = this.laan.map(l => l.laanebeloeb);
     let akkumuleretRente = 0;
-    // Annuitetsydelsen gælder kun i de amortiserende år; i afdragsfri år betales kun rente
-    const aarligYdelseAmortisation = this.beregnMaanedligYdelse() * 12;
 
     for (let aar = 0; aar <= antalAar; aar++) {
       const ejendomsvaerdi = this.beregnEjendomsvaerdi(aar);
 
-      // Årets renteomkostning beregnes på primosaldo, så samme formel som i beregnNyRestgaeld
-      const aarligRente = aar === 0 ? 0 : restgaeld * this.rentesats;
-
-      // I afdragsfri år (1..afdragsfriPeriodeAar) betales kun rente — restgælden står uændret
-      // beregnNyRestgaeld med ydelse=rente giver afdrag=0 og dermed uændret restgæld
-      const erAfdragsfri = aar > 0 && aar <= this.afdragsfriPeriodeAar;
-      const aarligYdelse = aar === 0 ? 0 : (erAfdragsfri ? aarligRente : aarligYdelseAmortisation);
+      let aarligRente = 0;
+      let aarligYdelse = 0;
 
       // År 0 er udgangspunktet (købstidspunktet) — restgæld nedbringes først fra år 1
       if (aar > 0) {
-        restgaeld = this.beregnNyRestgaeld(restgaeld, aarligYdelse);
+        // Hvert lån håndterer sin egen ydelse, rente og restgæld — også afdragsfri-perioden
+        for (let i = 0; i < this.laan.length; i++) {
+          const l = this.laan[i];
+          const ydelse = l.beregnAarligYdelseIAar(aar, restgaelder[i]);
+          aarligYdelse += ydelse;
+          aarligRente  += l.beregnAarligRente(restgaelder[i]);
+          restgaelder[i] = l.beregnNyRestgaeld(restgaelder[i], ydelse);
+        }
         akkumuleretRente += aarligRente;
       }
 
-      const renoIAar    = this.beregnRenoIAar(aar);
+      const totalRestgaeld = restgaelder.reduce((sum, r) => sum + r, 0);
+      const renoIAar       = this.beregnRenoIAar(aar);
       // Cashflow er 0 i år 0 — der er ingen driftsperiode endnu, kun købet
-      const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(aarligYdelse, renoIAar);
+      const cashflow       = aar === 0 ? 0 : this.beregnAarligtCashflow(aarligYdelse, renoIAar);
       // Egenkapital = hvad ejendommen er værd minus hvad der stadig skyldes
       // Købsomkostninger (advokat, tinglysning mv.) er en sunk cost der permanent reducerer egenkapitalen,
       // fordi de er betalt kontant ved købet og aldrig kan trækkes ud igen
-      const egenkapital = ejendomsvaerdi - restgaeld - this.koebsOmkostninger;
+      const egenkapital    = ejendomsvaerdi - totalRestgaeld - this.koebsOmkostninger;
 
-      resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital, aarligRente, akkumuleretRente });
+      resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld: totalRestgaeld, egenkapital, aarligRente, akkumuleretRente });
     }
     return resultater;
   }
 }
 
-module.exports = { InvestmentCalculator, Renovering };
+module.exports = { InvestmentCalculator, Renovering, Laan };

@@ -40,6 +40,11 @@ app.get("/ejendomme", (req, res) => {
 
 app.listen(PORT, async () => {
     console.log(`Server kører på http://localhost:${PORT}`);
-    await db.connect();
-    console.log("Database forbundet");
+    try {
+        await db.connect();
+        console.log("Database forbundet");
+    } catch (err) {
+        console.error("Kunne ikke forbinde til database:", err.message);
+        console.error("Serveren kører videre, men API-kald vil fejle.");
+    }
 });

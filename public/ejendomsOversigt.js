@@ -134,6 +134,8 @@ async function visCases(ejendomId, adresse) {
 
 let aktivEjendomId = null;
 let aktivCaseId = null;
+// Holder hele case-objektet så gemCaseRettelser() kan sende uændrede felter (navn, beskrivelse, koebs_omkostninger) videre med PUT
+let aktivCase = null;
 
 // Holder styr på hvilke cases der er valgt til sammenligning
 const valgteCases = [];
@@ -233,7 +235,7 @@ async function duplikerCase(caseId, casenavn) {
 }
 
 function toggleRedigerSim() {
-  const felter = ["sim-ejendomspris", "sim-laanebeloeb", "sim-rentesats", "sim-loebetid"];
+  const felter = ["sim-ejendomspris", "sim-laanebeloeb", "sim-rentesats", "sim-loebetid", "sim-afdragsfri"];
   const redigerer = document.getElementById("rediger-sim-knap").textContent === "Rediger";
   felter.forEach(id => document.getElementById(id).toggleAttribute("readonly"));
   document.getElementById("rediger-sim-knap").textContent = redigerer ? "Annuller" : "Rediger";
@@ -242,11 +244,16 @@ function toggleRedigerSim() {
 
 async function gemCaseRettelser() {
   try {
+    // PUT er fuld replace — sender alle felter, også dem der ikke er redigeret i sim-visningen
+    // navn/beskrivelse/koebs_omkostninger tages fra det cachede aktivCase, ejendomspris fra inputfeltet
     const caseRes = await fetch(`/api/cases/${aktivCaseId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ejendomspris: parseFloat(document.getElementById("sim-ejendomspris").value),
+        navn:               aktivCase.navn,
+        beskrivelse:        aktivCase.beskrivelse,
+        ejendomspris:       parseFloat(document.getElementById("sim-ejendomspris").value),
+        koebs_omkostninger: Number(aktivCase.koebs_omkostninger) || 0,
       }),
     });
     if (!caseRes.ok) throw new Error("Kunne ikke gemme casedata");
@@ -256,9 +263,10 @@ async function gemCaseRettelser() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          laanebeloeb:  parseFloat(document.getElementById("sim-laanebeloeb").value),
-          rentesats:    parseFloat(document.getElementById("sim-rentesats").value),
-          loebetid_aar: parseInt(document.getElementById("sim-loebetid").value),
+          laanebeloeb:            parseFloat(document.getElementById("sim-laanebeloeb").value),
+          rentesats:              parseFloat(document.getElementById("sim-rentesats").value),
+          loebetid_aar:           parseInt(document.getElementById("sim-loebetid").value),
+          afdragsfri_periode_aar: parseInt(document.getElementById("sim-afdragsfri").value) || 0,
         }),
       });
       if (!laanRes.ok) throw new Error("Kunne ikke gemme lånedata");
@@ -286,11 +294,14 @@ async function klargørSimulering(caseId, casenavn) {
   const drift   = await driftRes.json();
   const udlejn  = await udlejRes.json();
 
+  aktivCase = invCase;
+
   if (laan.length) {
     aktivLaanId = laan[0].laan_id;
     document.getElementById("sim-laanebeloeb").value = laan[0].laanebeloeb;
     document.getElementById("sim-rentesats").value   = laan[0].rentesats;
     document.getElementById("sim-loebetid").value    = laan[0].loebetid_aar;
+    document.getElementById("sim-afdragsfri").value  = laan[0].afdragsfri_periode_aar || 0;
   }
 
   if (invCase) {
