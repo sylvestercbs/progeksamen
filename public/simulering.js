@@ -34,7 +34,7 @@ function visSimulering(resultater) {
         {
           label: "Årligt cashflow (kr.)",
           data: resultater.map(r => Math.round(r.cashflow)),
-          backgroundColor: resultater.map(r => r.cashflow >= 0 ? "#1a5c2e" : "#8b0000"),
+          backgroundColor: resultater.map(() => "#f5c518"),
           borderWidth: 0
         }
       ]
