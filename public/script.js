@@ -166,14 +166,16 @@ function opdaterDriftsTotal() {
 }
 
 document.getElementById("udlejning-tilfoej").addEventListener("click", function () {
-  const posttype     = document.getElementById("udlejning-type").value;
+  const posttype     = document.getElementById("udlejning-beskrivelse").value.trim();
   const beloeb       = document.getElementById("udlejning-beloeb").value;
   const erMaanedlig = document.getElementById("udlejning-frekvens").value;
+  if (!posttype) { alert("Udfyld beskrivelse"); return; }
   if (!beloeb) { alert("Udfyld beløb"); return; }
   udlejningsposter.push({ posttype, beloeb: parseFloat(beloeb), er_maanedlig: parseInt(erMaanedlig) });
   const li = document.createElement("li");
   li.textContent = `${posttype}: ${Number(beloeb).toLocaleString("da-DK")} kr. (${erMaanedlig === "1" ? "månedlig" : "årlig"})`;
   document.getElementById("udlejning-liste").appendChild(li);
+  document.getElementById("udlejning-beskrivelse").value = "";
   document.getElementById("udlejning-beloeb").value = "";
 });
 
