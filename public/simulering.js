@@ -1,6 +1,7 @@
 "use strict";
 
 let simuleringsGraf = null;
+let cashflowGraf = null;
 
 function visSimulering(resultater) {
   document.getElementById("sim-resultat").style.display = "block";
@@ -11,16 +12,37 @@ function visSimulering(resultater) {
     data: {
       labels: resultater.map(r => `År ${r.aar}`),
       datasets: [
-        { label: "Ejendomsværdi (kr.)", data: resultater.map(r => Math.round(r.ejendomsvaerdi)), borderColor: "steelblue", tension: 0.1, yAxisID: "y"  },
-        { label: "Gæld (kr.)",          data: resultater.map(r => Math.round(r.restgaeld)),       borderColor: "red",       tension: 0.1, yAxisID: "y"  },
-        { label: "Egenkapital (kr.)",   data: resultater.map(r => Math.round(r.egenkapital)),     borderColor: "green",     tension: 0.1, yAxisID: "y"  },
-        { label: "Årligt cashflow (kr.)",data: resultater.map(r => Math.round(r.cashflow)),       borderColor: "orange",    tension: 0.1, yAxisID: "y1" }
+        { label: "Ejendomsværdi (kr.)", data: resultater.map(r => Math.round(r.ejendomsvaerdi)), borderColor: "steelblue", tension: 0.1 },
+        { label: "Gæld (kr.)",          data: resultater.map(r => Math.round(r.restgaeld)),       borderColor: "red",       tension: 0.1 },
+        { label: "Egenkapital (kr.)",   data: resultater.map(r => Math.round(r.egenkapital)),     borderColor: "green",     tension: 0.1 }
       ]
     },
     options: {
+      plugins: { title: { display: true, text: "Ejendomsværdi, gæld og egenkapital over tid", font: { size: 16 } } },
       scales: {
-        y:  { position: "left",  title: { display: true, text: "Kr." } },
-        y1: { position: "right", title: { display: true, text: "Cashflow (kr.)" }, grid: { drawOnChartArea: false } }
+        y: { title: { display: true, text: "Kr." } }
+      }
+    }
+  });
+
+  if (cashflowGraf) cashflowGraf.destroy();
+  cashflowGraf = new Chart(document.getElementById("cashflow-graf").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: resultater.map(r => `År ${r.aar}`),
+      datasets: [
+        {
+          label: "Årligt cashflow (kr.)",
+          data: resultater.map(r => Math.round(r.cashflow)),
+          backgroundColor: resultater.map(r => r.cashflow >= 0 ? "#1a5c2e" : "#8b0000"),
+          borderWidth: 0
+        }
+      ]
+    },
+    options: {
+      plugins: { title: { display: true, text: "Cashflow pr. år", font: { size: 16 } } },
+      scales: {
+        y: { title: { display: true, text: "Kr." }, ticks: { callback: v => v.toLocaleString("da-DK") } }
       }
     }
   });
