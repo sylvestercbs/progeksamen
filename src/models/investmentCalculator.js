@@ -16,17 +16,20 @@ class Renovering {
 
 // InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
 class InvestmentCalculator {
-  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter) {
-    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer 
+  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter, afdragsfriPeriodeAar = 0) {
+    // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer
     // rentesats forventes som decimalbrøk — 0.04 for 4% — ikke som heltal
     if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     if (rentesats < 0) throw new Error("Rentesats må ikke være negativ");
+    if (afdragsfriPeriodeAar < 0) throw new Error("Afdragsfri periode må ikke være negativ");
+    if (afdragsfriPeriodeAar >= loebetidAar) throw new Error("Afdragsfri periode skal være kortere end løbetiden");
     this.pris = pris;
     this.laanebeloeb = laanebeloeb;
     this.rentesats = rentesats;
     this.loebetidAar = loebetidAar;
     this.lejeindtaegt = lejeindtaegt;
     this.udgifter = udgifter;
+    this.afdragsfriPeriodeAar = afdragsfriPeriodeAar;
     // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructorvparameter
     // fordi antallet er variabelt og ukendt ved oprettelse
     this.renoveringer = [];
@@ -42,9 +45,12 @@ class InvestmentCalculator {
 
   // Annuitetsformlen: M = P * (r * (1+r)^n) / ((1+r)^n - 1) bare vores standard fremskrivning fra VØS
   // P = lånebeløb, r = månedlig rente, n = antal måneder
+  // Med afdragsfri periode amortiseres hele lånebeløbet over de resterende år —
+  // i de afdragsfri år betales kun rente, så restgælden er stadig fuld når amortiseringen starter
   beregnMaanedligYdelse() {
     const r = this.rentesats / 12;
-    const n = this.loebetidAar * 12;
+    const amortisationsAar = this.loebetidAar - this.afdragsfriPeriodeAar;
+    const n = amortisationsAar * 12;
     // Særtilfælde: 0% rente giver division med nul i formlen — lånet fordeles ligeligt i stedet
     if (r === 0) return this.laanebeloeb / n;
     return this.laanebeloeb * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -81,15 +87,25 @@ class InvestmentCalculator {
   simuler(antalAar) {
     const resultater = [];
     let restgaeld = this.laanebeloeb;
-    // Ydelsen er konstant hele løbetiden (annuitetslån) — beregnes én gang uden for løkken
-    const aarligYdelse = this.beregnMaanedligYdelse() * 12;
+    let akkumuleretRente = 0;
+    // Annuitetsydelsen gælder kun i de amortiserende år; i afdragsfri år betales kun rente
+    const aarligYdelseAmortisation = this.beregnMaanedligYdelse() * 12;
 
     for (let aar = 0; aar <= antalAar; aar++) {
       const ejendomsvaerdi = this.beregnEjendomsvaerdi(aar);
 
+      // Årets renteomkostning beregnes på primosaldo, så samme formel som i beregnNyRestgaeld
+      const aarligRente = aar === 0 ? 0 : restgaeld * this.rentesats;
+
+      // I afdragsfri år (1..afdragsfriPeriodeAar) betales kun rente — restgælden står uændret
+      // beregnNyRestgaeld med ydelse=rente giver afdrag=0 og dermed uændret restgæld
+      const erAfdragsfri = aar > 0 && aar <= this.afdragsfriPeriodeAar;
+      const aarligYdelse = aar === 0 ? 0 : (erAfdragsfri ? aarligRente : aarligYdelseAmortisation);
+
       // År 0 er udgangspunktet (købstidspunktet) — restgæld nedbringes først fra år 1
       if (aar > 0) {
         restgaeld = this.beregnNyRestgaeld(restgaeld, aarligYdelse);
+        akkumuleretRente += aarligRente;
       }
 
       const renoIAar    = this.beregnRenoIAar(aar);
@@ -98,7 +114,7 @@ class InvestmentCalculator {
       // Egenkapital = hvad ejendommen er værd minus hvad der stadig skyldes
       const egenkapital = ejendomsvaerdi - restgaeld;
 
-      resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital });
+      resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital, aarligRente, akkumuleretRente });
     }
     return resultater;
   }

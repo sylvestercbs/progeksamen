@@ -47,7 +47,7 @@ function visSimulering(resultater) {
     }
   });
 
-  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th></tr>";
+  let html = "<table class='data-tabel'><tr><th>År</th><th>Ejendomsværdi</th><th>Gæld</th><th>Egenkapital</th><th>Cashflow</th><th>Årets rente</th><th>Renter i alt</th></tr>";
   resultater.forEach(r => {
     html += `<tr>
       <td>${r.aar}</td>
@@ -55,6 +55,8 @@ function visSimulering(resultater) {
       <td>${Math.round(r.restgaeld).toLocaleString("da-DK")} kr.</td>
       <td>${Math.round(r.egenkapital).toLocaleString("da-DK")} kr.</td>
       <td>${Math.round(r.cashflow).toLocaleString("da-DK")} kr.</td>
+      <td>${Math.round(r.aarligRente).toLocaleString("da-DK")} kr.</td>
+      <td>${Math.round(r.akkumuleretRente).toLocaleString("da-DK")} kr.</td>
     </tr>`;
   });
   html += "</table>";

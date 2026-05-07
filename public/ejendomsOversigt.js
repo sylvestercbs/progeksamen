@@ -321,7 +321,7 @@ async function klargørSimulering(caseId, casenavn) {
     ["Månedlige lejeindtægter",      fmt(Math.round(maanedligLejeindtaegt))],
     ["Månedlige lejeudgifter",       fmt(Math.round(maanedligLejeudgift))],
     ["Månedlige driftsomkostninger", fmt(Math.round(maanedligDrift))],
-    ["Månedlige cashflow pårvirkning I alt",   fmt(Math.round(maanedligCashflow))],
+    ["Månedlige cashflow pårvirkning I alt  ",   fmt(Math.round(maanedligCashflow))],
   ];
   document.getElementById("case-overblik-navn").textContent = casenavn;
   const overblikIndhold = document.getElementById("case-overblik-indhold");

@@ -262,7 +262,7 @@ router.post("/:id/simulate", async (req, res) => {
     const aarligUdlejn = udlejRes.recordset.reduce((sum, r) => sum + Number(r.aarligt), 0);
     const renoveringer = renoRes.recordset;
 
-    const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar, aarligUdlejn, aarligDrift);
+    const calculator = new InvestmentCalculator(invCase.ejendomspris, laan.laanebeloeb, laan.rentesats, laan.loebetid_aar, aarligUdlejn, aarligDrift, laan.afdragsfri_periode_aar || 0);
 
     // Renoveringer fra DB konverteres til Renovering-objekter og tilføjes calculatoren
     renoveringer.forEach(r => calculator.tilfoejRenovering(new Renovering(r.planlagt_aar, Number(r.beloeb))));

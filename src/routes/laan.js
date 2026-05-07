@@ -41,7 +41,7 @@ router.get("/:case_id", async (req, res) => {
       [{ name: "case_id", value: req.params.case_id }]
     );
     const laanMedYdelse = result.recordset.map(l => {
-      const calc = new InvestmentCalculator(0, l.laanebeloeb, l.rentesats, l.loebetid_aar, 0, 0);
+      const calc = new InvestmentCalculator(0, l.laanebeloeb, l.rentesats, l.loebetid_aar, 0, 0, l.afdragsfri_periode_aar || 0);
       return { ...l, maanedlig_ydelse: calc.beregnMaanedligYdelse() };
     });
     res.json(laanMedYdelse);
