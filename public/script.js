@@ -361,5 +361,22 @@ if (fraEjendomId) {
     document.getElementById("ejendomsprofil").style.display    = "block";
     document.getElementById("case-formular").style.display     = "block";
     document.getElementById("ejendomsprofil").scrollIntoView({ behavior: "smooth" });
+
+    // Lat/lng/UTM gemmes ikke i DB — vi genhenter dem fra DAWA via eksternt_id, så kortet
+    // kan vises ved genåbning af profilen. Falder DAWA, vises profilen alligevel uden kort.
+    if (e.eksternt_id) {
+      try {
+        // To opslag: standard JSON giver WGS84 (lat/lon), srid=25832 giver UTM32-koordinater til matrikellaget
+        const adr = await fetch(`https://api.dataforsyningen.dk/adresser/${e.eksternt_id}`).then(r => r.json());
+        const utm = await fetch(`https://api.dataforsyningen.dk/adresser/${e.eksternt_id}?format=geojson&srid=25832`).then(r => r.json());
+        valgtAdresseId = e.eksternt_id;
+        [valgtLon, valgtLat]       = adr.adgangsadresse.adgangspunkt.koordinater; // WGS84 til satellit/marker
+        [valgtX25832, valgtY25832] = utm.geometry.coordinates;                    // EPSG:25832 til matrikel-WMS
+        visKort();
+      } catch (err) {
+        // Kortet er ikke kritisk for case-flowet — log og fortsæt
+        console.warn("Kort kunne ikke vises:", err);
+      }
+    }
   })();
 }

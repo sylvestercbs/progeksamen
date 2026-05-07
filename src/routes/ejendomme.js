@@ -14,14 +14,36 @@ router.post('/', async (req, res) => {
       [{ name: 'eksternt_id', value: eksternt_id }]
     );
     if (eksisterende.recordset.length > 0) {
-      return res.status(200).json(eksisterende.recordset[0]);
+      // Genindhentning: opdater BBR-felter + tidsstempel for sidste datahentning
+      const opdateret = await db.query(
+        `UPDATE EjendomInvestApp.Ejendom
+         SET vejnavn = @vejnavn, husnummer = @husnummer, postnummer = @postnummer,
+             bynavn = @bynavn, ejendomstype = @ejendomstype, byggeaar = @byggeaar,
+             boligareal_m2 = @boligareal_m2, antal_vaerelser = @antal_vaerelser,
+             grundareal_m2 = @grundareal_m2, sidst_hentet = GETDATE()
+         OUTPUT INSERTED.ejendom_id
+         WHERE eksternt_id = @eksternt_id`,
+        [
+          { name: 'eksternt_id',     value: eksternt_id },
+          { name: 'vejnavn',         value: vejnavn },
+          { name: 'husnummer',       value: husnummer },
+          { name: 'postnummer',      value: postnummer },
+          { name: 'bynavn',          value: bynavn },
+          { name: 'ejendomstype',    value: ejendomstype },
+          { name: 'byggeaar',        value: byggeaar },
+          { name: 'boligareal_m2',   value: boligareal_m2 },
+          { name: 'antal_vaerelser', value: antal_vaerelser },
+          { name: 'grundareal_m2',   value: grundareal_m2 },
+        ]
+      );
+      return res.status(200).json(opdateret.recordset[0]);
     }
 
     const result = await db.query(
       `INSERT INTO EjendomInvestApp.Ejendom
-         (eksternt_id, vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser, grundareal_m2)
+         (eksternt_id, vejnavn, husnummer, postnummer, bynavn, ejendomstype, byggeaar, boligareal_m2, antal_vaerelser, grundareal_m2, sidst_hentet)
        OUTPUT INSERTED.ejendom_id
-       VALUES (@eksternt_id, @vejnavn, @husnummer, @postnummer, @bynavn, @ejendomstype, @byggeaar, @boligareal_m2, @antal_vaerelser, @grundareal_m2)`,
+       VALUES (@eksternt_id, @vejnavn, @husnummer, @postnummer, @bynavn, @ejendomstype, @byggeaar, @boligareal_m2, @antal_vaerelser, @grundareal_m2, GETDATE())`,
       [
         { name: 'eksternt_id',     value: eksternt_id },
         { name: 'vejnavn',         value: vejnavn },
