@@ -16,13 +16,14 @@ class Renovering {
 
 // InvestmentCalculator samler alle data og beregninger for en ejendomsinvestering ét sted
 class InvestmentCalculator {
-  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter, afdragsfriPeriodeAar = 0) {
+  constructor(pris, laanebeloeb, rentesats, loebetidAar, lejeindtaegt, udgifter, afdragsfriPeriodeAar = 0, koebsOmkostninger = 0) {
     // Validering i constructor sikrer at et ugyldigt calculator-objekt aldrig eksisterer
     // rentesats forventes som decimalbrøk — 0.04 for 4% — ikke som heltal
     if (rentesats > 1) throw new Error("Rentesats skal være en decimalbrøk, fx 0.04 for 4%");
     if (rentesats < 0) throw new Error("Rentesats må ikke være negativ");
     if (afdragsfriPeriodeAar < 0) throw new Error("Afdragsfri periode må ikke være negativ");
     if (afdragsfriPeriodeAar >= loebetidAar) throw new Error("Afdragsfri periode skal være kortere end løbetiden");
+    if (koebsOmkostninger < 0) throw new Error("Købsomkostninger må ikke være negative");
     this.pris = pris;
     this.laanebeloeb = laanebeloeb;
     this.rentesats = rentesats;
@@ -30,6 +31,7 @@ class InvestmentCalculator {
     this.lejeindtaegt = lejeindtaegt;
     this.udgifter = udgifter;
     this.afdragsfriPeriodeAar = afdragsfriPeriodeAar;
+    this.koebsOmkostninger = koebsOmkostninger;
     // Renoveringer tilføjes efter oprettelse via tilfoejRenovering() — ikke som constructorvparameter
     // fordi antallet er variabelt og ukendt ved oprettelse
     this.renoveringer = [];
@@ -112,7 +114,9 @@ class InvestmentCalculator {
       // Cashflow er 0 i år 0 — der er ingen driftsperiode endnu, kun købet
       const cashflow    = aar === 0 ? 0 : this.beregnAarligtCashflow(aarligYdelse, renoIAar);
       // Egenkapital = hvad ejendommen er værd minus hvad der stadig skyldes
-      const egenkapital = ejendomsvaerdi - restgaeld;
+      // Købsomkostninger (advokat, tinglysning mv.) er en sunk cost der permanent reducerer egenkapitalen,
+      // fordi de er betalt kontant ved købet og aldrig kan trækkes ud igen
+      const egenkapital = ejendomsvaerdi - restgaeld - this.koebsOmkostninger;
 
       resultater.push({ aar, ejendomsvaerdi, cashflow, restgaeld, egenkapital, aarligRente, akkumuleretRente });
     }
