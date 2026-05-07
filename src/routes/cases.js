@@ -44,6 +44,11 @@ router.post("/", async (req, res) => {
     if (!navn) return res.status(400).json({ error: 'Navn er påkrævet' });
     if (!ejendom_id) return res.status(400).json({ error: 'ejendom_id er påkrævet' });
 
+    // Normaliser optional felter til null — SQL-laget bruger ISNULL til at give defaults
+    const beskrivelseVal       = beskrivelse ?? null;
+    const ejendomsprisVal      = ejendomspris ?? null;
+    const koebsOmkostningerVal = koebs_omkostninger ?? null;
+
     // Genbrug eksisterende profil hvis den findes — ellers opret én pr. ejendom
     const eksisterendeProfil = await db.query(
       `SELECT TOP 1 profil_id FROM EjendomInvestApp.Ejendomsprofil
@@ -62,26 +67,28 @@ router.post("/", async (req, res) => {
         [
           { name: 'ejendom_id',  value: ejendom_id },
           { name: 'navn',        value: navn },
-          { name: 'beskrivelse', value: beskrivelse },
+          { name: 'beskrivelse', value: beskrivelseVal },
         ]
       );
       profilId = profilResult.recordset[0].profil_id;
     }
 
     // Afvis hvis identisk case allerede eksisterer under samme profil
+    // ISNULL på alle sammenligningsfelter sikrer konsistent matching: NULL og default
+    // (tom streng / 0) behandles ens, både i kolonnen og i parameteren
     const duplikatTjek = await db.query(
       `SELECT TOP 1 case_id FROM EjendomInvestApp.Investeringscase
        WHERE profil_id = @profil_id
-         AND navn = @navn
-         AND ISNULL(beskrivelse, '') = ISNULL(@beskrivelse, '')
-         AND ejendomspris = @ejendomspris
-         AND koebs_omkostninger = @koebs_omkostninger`,
+         AND ISNULL(navn, '')               = ISNULL(@navn, '')
+         AND ISNULL(beskrivelse, '')        = ISNULL(@beskrivelse, '')
+         AND ISNULL(ejendomspris, 0)        = ISNULL(@ejendomspris, 0)
+         AND ISNULL(koebs_omkostninger, 0)  = ISNULL(@koebs_omkostninger, 0)`,
       [
         { name: 'profil_id',          value: profilId },
         { name: 'navn',               value: navn },
-        { name: 'beskrivelse',        value: beskrivelse || null },
-        { name: 'ejendomspris',       value: ejendomspris || 0 },
-        { name: 'koebs_omkostninger', value: koebs_omkostninger || 0 },
+        { name: 'beskrivelse',        value: beskrivelseVal },
+        { name: 'ejendomspris',       value: ejendomsprisVal },
+        { name: 'koebs_omkostninger', value: koebsOmkostningerVal },
       ]
     );
     if (duplikatTjek.recordset.length > 0) {
@@ -92,16 +99,17 @@ router.post("/", async (req, res) => {
     }
 
     // Opret Investeringscase med reference til den nye profil
+    // ISNULL på beløbsfelterne giver samme default (0) som duplikat-tjekket forventer
     const caseResult = await db.query(
       `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)
        OUTPUT INSERTED.case_id
-       VALUES (@profil_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
+       VALUES (@profil_id, @navn, @beskrivelse, ISNULL(@ejendomspris, 0), ISNULL(@koebs_omkostninger, 0))`,
       [
         { name: 'profil_id',          value: profilId },
         { name: 'navn',               value: navn },
-        { name: 'beskrivelse',        value: beskrivelse },
-        { name: 'ejendomspris',       value: ejendomspris || 0 },
-        { name: 'koebs_omkostninger', value: koebs_omkostninger || 0 },
+        { name: 'beskrivelse',        value: beskrivelseVal },
+        { name: 'ejendomspris',       value: ejendomsprisVal },
+        { name: 'koebs_omkostninger', value: koebsOmkostningerVal },
       ]
     );
     res.status(201).json(caseResult.recordset[0]);
@@ -123,19 +131,20 @@ router.put("/:id", async (req, res) => {
       return res.status(400).json({ error: "Købsomkostninger skal være et ikke-negativt tal" });
     }
 
+    // ISNULL på beløbsfelterne giver samme default (0) som POST-ruten — konsistent semantik
     const result = await db.query(
       `UPDATE EjendomInvestApp.Investeringscase
        SET navn               = @navn,
            beskrivelse        = @beskrivelse,
-           ejendomspris       = @ejendomspris,
-           koebs_omkostninger = @koebs_omkostninger
+           ejendomspris       = ISNULL(@ejendomspris, 0),
+           koebs_omkostninger = ISNULL(@koebs_omkostninger, 0)
        OUTPUT INSERTED.*
        WHERE case_id = @id`,
       [
         { name: "navn",               value: navn },
         { name: "beskrivelse",        value: beskrivelse ?? null },
-        { name: "ejendomspris",       value: ejendomspris },
-        { name: "koebs_omkostninger", value: koebs_omkostninger },
+        { name: "ejendomspris",       value: ejendomspris ?? null },
+        { name: "koebs_omkostninger", value: koebs_omkostninger ?? null },
         { name: "id",                 value: req.params.id },
       ]
     );
@@ -161,16 +170,17 @@ router.post("/:id/duplicate", async (req, res) => {
     if (!caseRes.recordset.length) return res.status(404).json({ error: "Case ikke fundet" });
     const orig = caseRes.recordset[0];
 
+    // ISNULL på beløbsfelterne — samme default-semantik som POST og PUT
     const nyCase = await db.query(
       `INSERT INTO EjendomInvestApp.Investeringscase (profil_id, navn, beskrivelse, ejendomspris, koebs_omkostninger)
        OUTPUT INSERTED.case_id
-       VALUES (@profil_id, @navn, @beskrivelse, @ejendomspris, @koebs_omkostninger)`,
+       VALUES (@profil_id, @navn, @beskrivelse, ISNULL(@ejendomspris, 0), ISNULL(@koebs_omkostninger, 0))`,
       [
         { name: "profil_id",          value: orig.profil_id },
         { name: "navn",               value: orig.navn + " (kopi)" },
-        { name: "beskrivelse",        value: orig.beskrivelse },
-        { name: "ejendomspris",       value: orig.ejendomspris },
-        { name: "koebs_omkostninger", value: orig.koebs_omkostninger },
+        { name: "beskrivelse",        value: orig.beskrivelse ?? null },
+        { name: "ejendomspris",       value: orig.ejendomspris ?? null },
+        { name: "koebs_omkostninger", value: orig.koebs_omkostninger ?? null },
       ]
     );
     const nyCaseId = nyCase.recordset[0].case_id;
